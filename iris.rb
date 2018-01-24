@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 #TODO: Validate author with file owner
+#TODO: Create struct to firm up message payload
 
 require 'time'
 require 'base64'
@@ -9,11 +10,11 @@ require 'socket'
 require 'json'
 
 class Config
-  CONFIG_FILE  = self.get[:config_file]  || "#{ENV['HOME']}/.iris.config.json"
-  MESSAGE_FILE = self.get[:message_file] || "#{ENV['HOME']}/.iris.messages"
+  CONFIG_FILE  = "#{ENV['HOME']}/.iris.config.json"
+  MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
-  HOSTNAME     = self.get[:hostname] || Socket.gethostname
+  HOSTNAME     = Socket.gethostname
   AUTHOR       = "#{USER}@#{HOSTNAME}"
 
   def self.get(filepath = CONFIG_FILE)
