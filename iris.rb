@@ -28,9 +28,7 @@ class Config
 end
 
 class Message
-  TERMINATOR = "\n.\n"
-  FIELD_SEPARATOR = '|'
-  FILE_FORMAT = 'v1'
+  FILE_FORMAT = 'v2'
 
   attr_reader :timestamp, :hash, :edit_hash, :author, :parent, :message
 
@@ -42,30 +40,34 @@ class Message
   end
 
   def self.load(payload)
-    payload = payload.gsub(/#{TERMINATOR}$/, '')
-    hash, edit_hash, timestamp, parent, author, *message = payload.split(FIELD_SEPARATOR)
+    data = JSON.parse(payload)
+    # hash, edit_hash, timestamp, parent, author, *message = payload.split(FIELD_SEPARATOR)
 
-    loaded_message = self.new(message.join(FIELD_SEPARATOR), author, parent, timestamp, edit_hash)
-    raise 'Broken hash!' unless loaded_message.hash == hash
+    loaded_message = self.new(data['data']['message'], data['data']['author'], data['data']['parent'], data['data']['timestamp'], data['edit_hash'])
+    raise 'Broken hash!' unless loaded_message.hash == data['hash']
     loaded_message
   end
 
-  def hash
-    make_sha(unconfirmed_payload)
+  def hash(payload = nil)
+    payload ||= unconfirmed_payload.to_json
+    Base64.encode64(Digest::SHA1.digest(payload))
   end
 
-  def to_payload
-    [hash, @edit_hash, unconfirmed_payload].join(FIELD_SEPARATOR) + TERMINATOR
+  def to_json
+    {
+      hash: hash,
+      edit_hash: edit_hash,
+      data: unconfirmed_payload
+    }.to_json
   end
-
-  private
 
   def unconfirmed_payload
-    [@timestamp, @parent, @author, @message].join(FIELD_SEPARATOR)
-  end
-
-  def make_sha(payload)
-    Base64.encode64(Digest::SHA1.digest(payload))
+    {
+      author: author,
+      parent: parent,
+      timestamp: timestamp,
+      message: message,
+    }
   end
 end
 
