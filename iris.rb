@@ -2,9 +2,11 @@
 
 #TODO: Validate author with file owner
 #TODO: Create struct to firm up message payload
-#TODO: Common message file location for the security-concious?
+#TODO: Common message file location for the security-conscious?
 #TODO: Check for proper file permissions on message file
 #TODO: Use ENV for rows and cols of display?
+#TODO: Add "read" list
+#TODO: Fix hostname for domain name
 
 require 'time'
 require 'base64'
