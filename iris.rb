@@ -32,8 +32,8 @@ class Config
     return @@loaded_config = JSON.load(filepath)
   end
 
-  def self.load_corpus
-    @@message_corpus ||= (`ls /home/**/.iris.config.json`).split("\n")
+  def self.find_files
+    @@message_corpus ||= (`ls /home/**/.iris.messages`).split("\n")
   end
 end
 
@@ -55,6 +55,30 @@ class IrisFile
       new_message.validate_user(username)
       new_message
     end
+  end
+
+  def self.write_corpus(corpus)
+    File.write(Config::MESSAGE_FILE, corpus)
+  end
+end
+
+class Corpus
+  def self.load
+    @@corpus = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
+    @@topics = @@corpus.select{ |m| m.parent == nil }
+    @@my_corpus = IrisFile.load_messages
+  end
+
+  def self.all
+    @@corpus
+  end
+
+  def self.topics
+    @@topics
+  end
+
+  def self.mine
+    @@my_corpus
   end
 end
 
@@ -99,6 +123,14 @@ class Message
     @errors.empty?
   end
 
+  def save!
+    new_corpus = Corpus.mine << self
+    p new_corpus
+    p new_corpus.to_json
+    IrisFile.write_corpus(new_corpus.to_json)
+    Corpus.load
+  end
+
   def hash(payload = nil)
     payload ||= unconfirmed_payload.to_json
     Base64.encode64(Digest::SHA1.digest(payload))
@@ -108,7 +140,8 @@ class Message
     parent.nil?
   end
 
-  def to_json
+  def to_json(*args)
+    p args
     {
       hash: hash,
       edit_hash: edit_hash,
@@ -125,4 +158,7 @@ class Message
     }
   end
 end
+
+Corpus.load
+puts "#{Config::AUTHOR}>"
 
