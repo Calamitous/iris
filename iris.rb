@@ -23,11 +23,13 @@ require 'base64'
 require 'digest'
 require 'json'
 require 'etc'
+require 'readline'
 
 class Config
   VERSION      = '1.0.0'
   CONFIG_FILE  = "#{ENV['HOME']}/.iris.config.json"
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
+  HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
@@ -145,6 +147,27 @@ class Message
     Base64.encode64(Digest::SHA1.digest(payload))
   end
 
+  def truncated_message(length)
+    stub = message.split("\n").first
+    return stub if stub.length <= length
+    stub.slice(0, length - 3) + '...'
+  end
+
+  def to_topic_line(index)
+    head = ['', Display.print_index(index), timestamp, author].join(' | ')
+    message_stub = truncated_message(Display::WIDTH - head.length)
+    [head, message_stub].join(' | ')
+  end
+
+  def to_topic_display
+    [
+      "On #{timestamp}, #{author} posted...",
+      '-' * Display::WIDTH,
+      message,
+      '-' * Display::WIDTH
+    ].join("\n")
+  end
+
   def is_topic?
     parent.nil?
   end
@@ -167,6 +190,150 @@ class Message
   end
 end
 
-Corpus.load
-puts "#{Config::AUTHOR}>"
+class Display
+  WIDTH = 80
 
+  def self.topic_index_width
+    Corpus.topics.size.to_s.length
+  end
+
+  def self.print_index(index)
+    ((' ' * topic_index_width) + index.to_s)[(-topic_index_width)..-1]
+  end
+end
+
+class Interface
+  ONE_SHOTS = %w{help topics create quit freshen}
+  CMD_MAP = {
+    't'       => 'topics',
+    'topics'  => 'topics',
+    'c'       => 'create',
+    'create'  => 'create',
+    'h'       => 'help',
+    '?'       => 'help',
+    'help'    => 'help',
+    'r'       => 'reply',
+    'reply'   => 'reply',
+    'q'       => 'quit',
+    'quit'    => 'quit',
+    'freshen' => 'freshen',
+    'f'       => 'freshen',
+  }
+
+  def browsing_handler(line)
+    cmd = line.split(/\s/).first
+    cmd = CMD_MAP[cmd] || cmd
+    return self.send(cmd.to_sym) if ONE_SHOTS.include?(cmd)
+    return show_topic(cmd) if cmd =~ /^\d+$/
+  end
+
+  def creating_handler(line)
+    if line !~ /^\.$/
+      if @text_buffer.empty?
+        @text_buffer = line
+      else
+        @text_buffer = [@text_buffer, line].join("\n")
+      end
+      return
+    end
+
+    if @text_buffer.length <= 1
+      puts 'Empty message, discarding...'
+    else
+      Message.new(@text_buffer).save!
+      puts 'Topic saved!'
+    end
+    @mode = :browsing
+  end
+
+  def handle(line)
+    return browsing_handler(line) if @mode == :browsing
+    return creating_handler(line) if @mode == :creating
+  end
+
+  def show_topic(num)
+    index = num.to_i - 1
+    if index >= 0 && index < Corpus.topics.length
+      puts Corpus.topics[index].to_topic_display
+    else
+      puts 'Could not find a topic with that ID'
+    end
+  end
+
+  def quit
+    exit(0)
+  end
+
+  def self.start
+    self.new
+  end
+
+  def prompt
+    return 'new~> ' if @mode == :creating
+    return 'reply~> ' if @mode == :replying
+    "#{Config::AUTHOR}~> "
+  end
+
+  def initialize
+    Corpus.load
+    @history_loaded = false
+    @mode = :browsing
+
+    puts "Welcome to Iris v#{Config::VERSION}.  Type 'help' for a list of commands; Ctrl-D or 'quit' to leave."
+    while line = readline(prompt) do
+      puts handle(line)
+    end
+  end
+
+  def create
+    @mode = :creating
+    @text_buffer = ''
+    puts 'Writing a new topic.  Type a period on a line by itself to end.'
+  end
+
+  def topics
+    Corpus.topics.each_with_index { |topic, index| puts topic.to_topic_line(index + 1) }
+    nil
+  end
+
+  def help
+    puts
+    puts "Iris v#{Config::VERSION}"
+    puts
+    puts 'Commands'
+    puts '========'
+    puts 'help, h, ?   - Display this text'
+    puts 'topics, t    - List all topics'
+    puts '# (topic id) - Read specified topic'
+    puts 'create, c    - Add a new topic'
+    puts 'reply #, r # - Reply to a specific topic'
+    puts 'freshen, f   - Reload to get any new messages'
+    puts
+  end
+
+  def freshen
+    Corpus.load
+    puts 'Reloaded!'
+  end
+
+  def readline(prompt)
+    if !@history_loaded && File.exist?(Config::HISTORY_FILE)
+      @history_loaded = true
+      if File.readable?(Config::HISTORY_FILE)
+        File.readlines(Config::HISTORY_FILE).each {|l| Readline::HISTORY.push(l.chomp)}
+      end
+    end
+
+    if line = Readline.readline(prompt, true)
+      if File.writable?(Config::HISTORY_FILE)
+        File.open(Config::HISTORY_FILE) {|f| f.write(line+"\n")}
+      end
+      return line
+    else
+      return nil
+    end
+  end
+
+end
+
+Interface.start
