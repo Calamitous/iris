@@ -6,7 +6,17 @@
 #TODO: Check for proper file permissions on message file
 #TODO: Use ENV for rows and cols of display?
 #TODO: Add "read" list
-#TODO: Fix hostname for domain name
+#TODO: Add read/unread count
+#TODO: Pagination
+#TODO: Add title for topics
+#TODO: Don't crash when names are cattywumpus
+#TODO: Add user muting
+#TODO: Message deletion
+#TODO: Move all puts into Display class
+#TODO: Add startup enviro health check
+#TODO: Split helptext into separate file?
+#TODO: Add .mute.iris support?
+#TODO: CLI options for scripting
 
 require 'time'
 require 'base64'

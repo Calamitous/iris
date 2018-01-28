@@ -78,9 +78,9 @@ User configuration is stored in the user's home directory, named `iris.config`. 
 
 `/home/jimmy_foo/.iris.config`
 
-#### Read Log
+#### Read Messages
 
-The read log keeps track of what messages the user has seen/read.  It is storedf in the user's home directory and named `iris.readlog`.
+The Read Messages keeps track of what messages the user has seen/read.  It is storedf in the user's home directory and named `iris.readlog`.
 
 `/home/jimmy_foo/.iris.readlog`
 
@@ -90,6 +90,8 @@ The readlog must be owner read/writeable.
 %> ls -la ~/.iris.readlog
 -rw------- 1 jimmy_foo jimmy_foo /home/jimmy_foo/.iris.readlog
 ```
+
+#### Activity Log
 
 ### Technical Bits
 
