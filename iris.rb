@@ -21,7 +21,6 @@
 require 'time'
 require 'base64'
 require 'digest'
-require 'socket'
 require 'json'
 require 'etc'
 
@@ -30,7 +29,7 @@ class Config
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
-  HOSTNAME     = Socket.gethostname
+  HOSTNAME     = `hostname -d`.chomp
   AUTHOR       = "#{USER}@#{HOSTNAME}"
 
   def self.get(filepath = CONFIG_FILE)
