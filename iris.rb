@@ -25,6 +25,7 @@ require 'json'
 require 'etc'
 
 class Config
+  VERSION      = '1.0.0'
   CONFIG_FILE  = "#{ENV['HOME']}/.iris.config.json"
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
 
@@ -49,15 +50,16 @@ end
 class IrisFile
   def self.load_messages(filepath = Config::MESSAGE_FILE)
     # TODO create file for current user
+    # For logger: puts "Checking #{filepath}"
     return [] unless File.exists?(filepath)
 
+    # For logger: puts "Found, parsing #{filepath}..."
     # TODO gracefully handle non-json files
     payload = JSON.parse(File.read(filepath))
     raise 'Invalid File!' unless payload.is_a?(Array)
 
     uid = File.stat(filepath).uid
     username = Etc.getpwuid(uid).name
-    p username
 
     payload.map do |message_json|
       new_message = Message.load(message_json)
@@ -73,9 +75,9 @@ end
 
 class Corpus
   def self.load
-    @@corpus = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
-    @@topics = @@corpus.select{ |m| m.parent == nil }
-    @@my_corpus = IrisFile.load_messages
+    @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
+    @@topics    = @@corpus.select{ |m| m.parent == nil }
+    @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
   end
 
   def self.all
@@ -134,8 +136,6 @@ class Message
 
   def save!
     new_corpus = Corpus.mine << self
-    p new_corpus
-    p new_corpus.to_json
     IrisFile.write_corpus(new_corpus.to_json)
     Corpus.load
   end
@@ -150,7 +150,6 @@ class Message
   end
 
   def to_json(*args)
-    p args
     {
       hash: hash,
       edit_hash: edit_hash,
