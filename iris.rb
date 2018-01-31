@@ -2,7 +2,6 @@
 
 #  MVP:
 # -----
-# TODO: Remove user config?
 # TODO: Validate author with file owner
 # TODO: Add optional title for topics
 # TODO: Don't crash when names are cattywumpus
@@ -55,22 +54,12 @@ require 'readline'
 
 class Config
   VERSION      = '1.0.0'
-  CONFIG_FILE  = "#{ENV['HOME']}/.iris.config.json"
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
   AUTHOR       = "#{USER}@#{HOSTNAME}"
-
-  def self.get(filepath = CONFIG_FILE)
-    return @@loaded_config if @@loaded_config
-    if !File.exists?(filepath)
-      File.write(filepath, '{}')
-      return @@loaded_config = {}
-    end
-    return @@loaded_config = JSON.load(filepath)
-  end
 
   def self.find_files
     @@message_corpus ||= (`ls /home/**/.iris.messages`).split("\n")
