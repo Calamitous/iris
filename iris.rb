@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-#  MVP: Complete!
+#  MVP:
+# -----
+# TODO: Finish up README.md
 #
 # Reading/Status:
 # TODO: Add "read" list
@@ -234,12 +236,12 @@ class Message
   def truncated_message(length)
     stub = message.split("\n").first
     return stub if stub.length <= length
-    stub.slice(0, length - 3) + '...'
+    stub.slice(0, length - 6) + '...'
   end
 
   def to_topic_line(index)
     error_marker = valid? ? ' ' : 'X'
-    head = [error_marker, Display.print_index(index), timestamp, author].join(' | ')
+    head = [error_marker, Display.print_index(index), timestamp, Display.print_author(author)].join(' | ')
     message_stub = truncated_message(Display::WIDTH - head.length)
     [head, message_stub].join(' | ')
   end
@@ -253,7 +255,7 @@ class Message
   end
 
   def to_display
-    error_marker = valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
+    error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
     error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
     [
       "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
@@ -303,8 +305,18 @@ class Display
     Corpus.topics.size.to_s.length
   end
 
+  def self.topic_author_width
+    Corpus.topics.map(&:author).map(&:length).max
+  end
+
   def self.print_index(index)
+    # Left-align
     ((' ' * topic_index_width) + index.to_s)[(-topic_index_width)..-1]
+  end
+
+  def self.print_author(author)
+    # Right-align
+    (author.to_s + (' ' * topic_author_width))[0..(topic_author_width - 1)]
   end
 end
 
