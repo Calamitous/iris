@@ -2,7 +2,6 @@
 
 #  MVP:
 # -----
-# TODO: Create message file for current user if it doesn't exist
 # TODO: Remove user config?
 # TODO: Validate author with file owner
 # TODO: Add optional title for topics
@@ -95,6 +94,12 @@ class IrisFile
       new_message.validate_user(username)
       new_message
     end
+  end
+
+  def self.create_message_file
+    raise 'File exists; refusing to overwrite!' if File.exists?(Config::MESSAGE_FILE)
+    File.umask(0122)
+    File.open(Config::MESSAGE_FILE, 'w') { |f| f.write('[]') }
   end
 
   def self.write_corpus(corpus)
@@ -483,6 +488,18 @@ class Startupper
   end
 
   def perform_startup_checks
+    unless File.exists?(Config::MESSAGE_FILE)
+      puts "You don't have a message file at #{Config::MESSAGE_FILE}."
+      response = Readline.readline 'Would you like me to create it for you? (y/n) ', true
+
+      if /[Yy]/ =~ response
+        IrisFile.create_message_file
+      else
+        puts 'Cannot run Iris without a message file!'
+        exit(1)
+      end
+    end
+
     if File.stat(Config::MESSAGE_FILE).mode != 33188
       puts '*' * 80
       puts 'Your message file has incorrect permissions!  Should be "-rw-r--r--".'
