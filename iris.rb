@@ -299,7 +299,8 @@ class Message
 end
 
 class Display
-  WIDTH = 80
+  MIN_WIDTH = 80
+  WIDTH = [ENV['COLUMNS'].to_i, `tput cols`.chomp.to_i, MIN_WIDTH].compact.max
 
   def self.topic_index_width
     Corpus.topics.size.to_s.length
