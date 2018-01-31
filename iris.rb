@@ -17,6 +17,7 @@
 # TODO: CLI options for scripting
 #
 # Tech debt:
+# TODO: Add tests
 # TODO: Split helptext into separate file?
 # TODO: Move all puts into Display class
 # TODO: Make all output WIDTH-aware
@@ -24,6 +25,7 @@
 # TODO: Common message file location for the security-conscious?
 # TODO: Parse and manage options before instantiating Interface from .start
 # TODO: Validate config, read, and history perms on startup
+# TODO: Let Message initialization accept params as a hash
 #
 # Fancify interface:
 # TODO: Use ENV for rows and cols of display?
@@ -31,6 +33,7 @@
 # TODO: Make nicer topic display
 #
 # Features:
+# TODO: Add read-only mode if user doesn't want/can't have message file
 # TODO: Add user muting
 # TODO: Add .mute.iris support?
 # TODO: Message deletion
