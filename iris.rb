@@ -2,11 +2,10 @@
 
 #  MVP:
 # -----
-# TODO: Validate author with file owner
-# TODO: Add optional title for topics
-# TODO: Don't crash when names are cattywumpus
+# TODO: Don't crash when user names are cattywumpus
 # TODO: Gracefully handle non-json files when/before parsing
 # TODO: Gracefully validate message hashes on load
+# TODO: Fix topic display of poster names to set width
 #
 # Reading/Status:
 # TODO: Add "read" list
@@ -29,6 +28,7 @@
 # TODO: Use ENV for rows and cols of display?
 # TODO: Pagination?
 # TODO: Make nicer topic display
+# TODO: Add optional title for topics
 #
 # Features:
 # TODO: Add read-only mode if user doesn't want/can't have message file
@@ -183,7 +183,7 @@ class Message
 
   def validate_hash(test_hash)
     if self.hash != test_hash
-      @errors << "Broken hash: expected '#{hash}', got '#{test_hash}'"
+      @errors << "Broken hash: expected '#{hash.chomp}', got '#{test_hash.chomp}'"
     end
   end
 
@@ -212,7 +212,8 @@ class Message
   end
 
   def to_topic_line(index)
-    head = ['', Display.print_index(index), timestamp, author].join(' | ')
+    error_marker = valid? ? ' ' : 'X'
+    head = [error_marker, Display.print_index(index), timestamp, author].join(' | ')
     message_stub = truncated_message(Display::WIDTH - head.length)
     [head, message_stub].join(' | ')
   end
@@ -226,12 +227,17 @@ class Message
   end
 
   def to_display
+    error_marker = valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
+    error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
     [
       "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
+      error_marker,
+      errors,
+      error_follower,
       '-' * Display::WIDTH,
       message,
       '-' * Display::WIDTH
-    ].join("\n")
+    ].flatten.compact.join("\n")
   end
 
   def to_topic_display
