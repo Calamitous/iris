@@ -1,22 +1,48 @@
 #!/usr/bin/env ruby
 
-#TODO: Validate author with file owner
-#TODO: Create struct to firm up message payload
-#TODO: Common message file location for the security-conscious?
-#TODO: Check for proper file permissions on message file
-#TODO: Use ENV for rows and cols of display?
-#TODO: Add "read" list
-#TODO: Add read/unread count
-#TODO: Pagination
-#TODO: Add title for topics
-#TODO: Don't crash when names are cattywumpus
-#TODO: Add user muting
-#TODO: Message deletion
-#TODO: Move all puts into Display class
-#TODO: Add startup enviro health check
-#TODO: Split helptext into separate file?
-#TODO: Add .mute.iris support?
-#TODO: CLI options for scripting
+#  MVP:
+# -----
+# TODO: Create message file for current user if it doesn't exist
+# TODO: Remove user config?
+# TODO: Validate author with file owner
+# TODO: Add optional title for topics
+# TODO: Don't crash when names are cattywumpus
+# TODO: Gracefully handle non-json files when/before parsing
+# TODO: Gracefully validate message hashes on load
+#
+# Reading/Status:
+# TODO: Add "read" list
+# TODO: Add read/unread count
+# TODO: Create read file for current user if it doesn't exist
+# TODO: CLI options for scripting
+#
+# Tech debt:
+# TODO: Split helptext into separate file?
+# TODO: Move all puts into Display class
+# TODO: Make all output WIDTH-aware
+# TODO: Create struct to firm up message payload
+# TODO: Common message file location for the security-conscious?
+# TODO: Parse and manage options before instantiating Interface from .start
+# TODO: Validate config, read, and history perms on startup
+#
+# Fancify interface:
+# TODO: Use ENV for rows and cols of display?
+# TODO: Pagination?
+# TODO: Make nicer topic display
+#
+# Features:
+# TODO: Add user muting
+# TODO: Add .mute.iris support?
+# TODO: Message deletion
+# TODO: Add startup enviro health check
+# TODO: Add message editing
+# TODO: Add full message corpus dump for backup/debugging
+#
+# Later/Maybe:
+# * ncurses client
+# * customizable prompt
+# * MOTD
+# * Add to default startup script to display read count
 
 require 'time'
 require 'base64'
@@ -51,12 +77,10 @@ end
 
 class IrisFile
   def self.load_messages(filepath = Config::MESSAGE_FILE)
-    # TODO create file for current user
     # For logger: puts "Checking #{filepath}"
     return [] unless File.exists?(filepath)
 
     # For logger: puts "Found, parsing #{filepath}..."
-    # TODO gracefully handle non-json files
     payload = JSON.parse(File.read(filepath))
     raise 'Invalid File!' unless payload.is_a?(Array)
 
