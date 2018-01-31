@@ -1,11 +1,6 @@
 #!/usr/bin/env ruby
 
-#  MVP:
-# -----
-# TODO: Don't crash when user names are cattywumpus
-# TODO: Gracefully handle non-json files when/before parsing
-# TODO: Gracefully validate message hashes on load
-# TODO: Fix topic display of poster names to set width
+#  MVP: Complete!
 #
 # Reading/Status:
 # TODO: Add "read" list
@@ -25,7 +20,7 @@
 # TODO: Let Message initialization accept params as a hash
 #
 # Fancify interface:
-# TODO: Use ENV for rows and cols of display?
+# TODO: Use ENV for rows and cols of display? (No)
 # TODO: Pagination?
 # TODO: Make nicer topic display
 # TODO: Add optional title for topics
@@ -72,8 +67,36 @@ class IrisFile
     return [] unless File.exists?(filepath)
 
     # For logger: puts "Found, parsing #{filepath}..."
-    payload = JSON.parse(File.read(filepath))
-    raise 'Invalid File!' unless payload.is_a?(Array)
+    begin
+      payload = JSON.parse(File.read(filepath))
+    rescue JSON::ParserError => e
+      if filepath == Config::MESSAGE_FILE
+        puts '*' * 80
+        puts 'Your message file appears to be corrupt.'
+        puts "Could not parse valid JSON from #{filepath}"
+        puts 'Please fix or delete this message file to use Iris.'
+        puts '*' * 80
+        exit(0)
+      else
+        puts " * Unable to parse #{filepath}, skipping..."
+        return []
+      end
+    end
+
+    unless payload.is_a?(Array)
+      if filepath == Config::MESSAGE_FILE
+        puts '*' * 80
+        puts 'Your message file appears to be corrupt.'
+        puts "Could not interpret data from #{filepath}"
+        puts '(It\'s not a JSON array of messages, as far as I can tell)'
+        puts 'Please fix or delete this message file to use Iris.'
+        puts '*' * 80
+        exit(0)
+      else
+        puts " * Unable to interpret data from #{filepath}, skipping..."
+        return []
+      end
+    end
 
     uid = File.stat(filepath).uid
     username = Etc.getpwuid(uid).name
@@ -177,8 +200,11 @@ class Message
     @errors << 'Unvalidatable; username is empty' if username.empty?
 
     user_regex = Regexp.new("(.*)@#{Config::HOSTNAME}$")
-    author_name = user_regex.match(author)[1]
-    @errors << "Bad username: got #{author}'s message from #{username}'s message file." unless author_name == username
+    author_match = user_regex.match(author)
+
+    unless author_match && author_match[1] == username
+      @errors << "Bad username: got #{author}'s message from #{username}'s message file."
+    end
   end
 
   def validate_hash(test_hash)
