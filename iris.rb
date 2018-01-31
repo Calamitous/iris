@@ -104,6 +104,12 @@ class Corpus
     @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
     @@topics    = @@corpus.select{ |m| m.parent == nil }
     @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
+    @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
+    @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
+      agg[msg.parent] ||= []
+      agg[msg.parent] << @@corpus.index(msg)
+      agg
+    end
   end
 
   def self.all
@@ -117,18 +123,46 @@ class Corpus
   def self.mine
     @@my_corpus
   end
+
+  def self.find_message_by_hash(hash)
+    return nil unless hash
+    index = @@all_hash_to_index[hash]
+    return nil unless index
+    all[index]
+  end
+
+  def self.find_all_by_parent_hash(hash)
+    return [] unless hash
+    indexes = @@all_parent_hash_to_index[hash]
+    return [] unless indexes
+    indexes.map{ |idx| all[idx] }
+  end
+
+  def self.find_topic(topic_id)
+    if topic_id.to_i == 0
+      # This must be a hash, handle appropriately
+      msg = find_message_by_hash(topic_id)
+      puts 'WARNING: Expected a topic but got a reply!' unless msg.is_topic?
+      msg
+    else
+      # This must be an index, handle appropriately
+      index = topic_id.to_i - 1
+      return topics[index] if index >= 0 && index < topics.length
+    end
+  end
 end
 
 class Message
   FILE_FORMAT = 'v2'
 
-  attr_reader :timestamp, :hash, :edit_hash, :author, :parent, :message, :errors
+  attr_reader :timestamp, :edit_hash, :author, :parent, :message, :errors
 
-  def initialize(message, author = Config::AUTHOR, parent = nil, timestamp = Time.now.utc.iso8601, edit_hash = nil)
+  def initialize(message, parent = nil, author = Config::AUTHOR, timestamp = Time.now.utc.iso8601, edit_hash = nil)
     @parent    = parent
     @author    = author
     @timestamp = timestamp
     @message   = message
+    @hash      = hash
     @errors    = []
   end
 
@@ -136,7 +170,7 @@ class Message
     data = payload if payload.is_a?(Hash)
     data = JSON.parse(payload) if payload.is_a?(String)
 
-    loaded_message = self.new(data['data']['message'], data['data']['author'], data['data']['parent'], data['data']['timestamp'], data['edit_hash'])
+    loaded_message = self.new(data['data']['message'], data['data']['parent'], data['data']['author'], data['data']['timestamp'], data['edit_hash'])
     loaded_message.validate_hash(data['hash'])
     loaded_message
   end
@@ -151,7 +185,7 @@ class Message
   end
 
   def validate_hash(test_hash)
-    if hash != test_hash
+    if self.hash != test_hash
       @errors << "Broken hash: expected '#{hash}', got '#{test_hash}'"
     end
   end
@@ -167,7 +201,10 @@ class Message
   end
 
   def hash(payload = nil)
-    payload ||= unconfirmed_payload.to_json
+    if payload.nil?
+      return @hash if @hash
+      payload = unconfirmed_payload.to_json
+    end
     Base64.encode64(Digest::SHA1.digest(payload))
   end
 
@@ -183,13 +220,29 @@ class Message
     [head, message_stub].join(' | ')
   end
 
-  def to_topic_display
+  def leader_text
+    is_topic? ? '***' : '==='
+  end
+
+  def verb_text
+    is_topic? ? 'posted' : 'replied'
+  end
+
+  def to_display
     [
-      "On #{timestamp}, #{author} posted...",
+      "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
       '-' * Display::WIDTH,
       message,
       '-' * Display::WIDTH
     ].join("\n")
+  end
+
+  def to_topic_display
+    [to_display] + replies.map(&:to_display)
+  end
+
+  def replies
+    Corpus.find_all_by_parent_hash(hash)
   end
 
   def is_topic?
@@ -227,7 +280,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics create quit freshen}
+  ONE_SHOTS = %w{help topics create quit freshen reply}
   CMD_MAP = {
     't'       => 'topics',
     'topics'  => 'topics',
@@ -245,10 +298,55 @@ class Interface
   }
 
   def browsing_handler(line)
-    cmd = line.split(/\s/).first
+    tokens = line.split(/\s/)
+    cmd = tokens.first
     cmd = CMD_MAP[cmd] || cmd
-    return self.send(cmd.to_sym) if ONE_SHOTS.include?(cmd)
+    return self.send(cmd.to_sym) if ONE_SHOTS.include?(cmd) && tokens.length == 1
     return show_topic(cmd) if cmd =~ /^\d+$/
+    # We must have args, let's handle 'em
+    arg = tokens.last
+    return reply(arg) if cmd == 'reply'
+    puts 'Unrecognized command.  Type "help" for a list of available commands.'
+  end
+
+  def reply(topic_id = nil)
+    topic_id ||= @reply_topic
+    unless topic_id
+      puts "I can't reply to nothing! Include a topic ID or view a topic to reply to."
+      return
+    end
+
+    if parent = Corpus.find_topic(topic_id)
+      @reply_topic = parent.hash
+    else
+      puts "Could not reply; unable to find a topic with ID '#{topic_id}'"
+      return
+    end
+
+    @mode = :replying
+    @text_buffer = ''
+    title = Corpus.find_topic(parent.hash).truncated_message(80)
+    puts "Writing a reply to topic '#{title}'.  Type a period on a line by itself to end message."
+  end
+
+  def replying_handler(line)
+    if line !~ /^\.$/
+      if @text_buffer.empty?
+        @text_buffer = line
+      else
+        @text_buffer = [@text_buffer, line].join("\n")
+      end
+      return
+    end
+
+    if @text_buffer.length <= 1
+      puts 'Empty message, discarding...'
+    else
+      Message.new(@text_buffer, @reply_topic).save!
+      puts 'Reply saved!'
+    end
+    @reply_topic = nil
+    @mode = :browsing
   end
 
   def creating_handler(line)
@@ -273,12 +371,15 @@ class Interface
   def handle(line)
     return browsing_handler(line) if @mode == :browsing
     return creating_handler(line) if @mode == :creating
+    return replying_handler(line) if @mode == :replying
   end
 
   def show_topic(num)
     index = num.to_i - 1
     if index >= 0 && index < Corpus.topics.length
-      puts Corpus.topics[index].to_topic_display
+      msg = Corpus.topics[index]
+      @reply_topic = msg.hash
+      puts msg.to_topic_display
     else
       puts 'Could not find a topic with that ID'
     end
@@ -312,7 +413,7 @@ class Interface
   def create
     @mode = :creating
     @text_buffer = ''
-    puts 'Writing a new topic.  Type a period on a line by itself to end.'
+    puts 'Writing a new topic.  Type a period on a line by itself to end message.'
   end
 
   def topics
