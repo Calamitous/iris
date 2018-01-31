@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 
-#  MVP:
-# -----
-# TODO: Finish up README.md
+#  MVP: Complete!
 #
 # Reading/Status:
 # TODO: Add "read" list
@@ -26,6 +24,8 @@
 # TODO: Pagination?
 # TODO: Make nicer topic display
 # TODO: Add optional title for topics
+# TODO: Add version, filenames, etc. to helptext
+# TODO: Add line marker for topics to show if they have replies
 #
 # Features:
 # TODO: Add read-only mode if user doesn't want/can't have message file
