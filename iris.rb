@@ -288,8 +288,8 @@ class Interface
     exit(0)
   end
 
-  def self.start
-    self.new
+  def self.start(args)
+    self.new(args)
   end
 
   def prompt
@@ -298,7 +298,7 @@ class Interface
     "#{Config::AUTHOR}~> "
   end
 
-  def initialize
+  def initialize(args)
     Corpus.load
     @history_loaded = false
     @mode = :browsing
@@ -357,7 +357,43 @@ class Interface
       return nil
     end
   end
-
 end
 
-Interface.start
+class CLI
+  def self.start(args)
+  end
+end
+
+class Startupper
+  def initialize(args)
+    perform_startup_checks
+
+    if (args & %w{-i --interactive}).any? || args.empty?
+      Interface.start(args)
+    else
+      CLI.start(args)
+    end
+  end
+
+  def perform_startup_checks
+    if File.stat(Config::MESSAGE_FILE).mode != 33188
+      puts '*' * 80
+      puts 'Your message file has incorrect permissions!  Should be "-rw-r--r--".'
+      puts 'You can change this from the command line with:'
+      puts "  chmod 644 #{Config::MESSAGE_FILE}"
+      puts 'Leaving your file with incorrect permissions could allow unauthorized edits!'
+      puts '*' * 80
+    end
+
+    if File.stat(__FILE__).mode != 33261
+      puts '*' * 80
+      puts 'The Iris file has incorrect permissions!  Should be "-rwxr-xr-x".'
+      puts 'You can change this from the command line with:'
+      puts "  chmod 755 #{__FILE__}"
+      puts 'If this file has the wrong permissions the program may be tampered with!'
+      puts '*' * 80
+    end
+  end
+end
+
+Startupper.new(ARGV)
