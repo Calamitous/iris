@@ -322,7 +322,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics compose quit freshen reply}
+  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply}
   CMD_MAP = {
     't'       => 'topics',
     'topics'  => 'topics',
@@ -337,6 +337,8 @@ class Interface
     'quit'    => 'quit',
     'freshen' => 'freshen',
     'f'       => 'freshen',
+    'reset'   => 'reset_display',
+    'clear'   => 'reset_display',
   }
 
   def browsing_handler(line)
@@ -350,6 +352,10 @@ class Interface
     return reply(arg) if cmd == 'reply'
     puts 'Unrecognized command.  Type "help" for a list of available commands.'
     nil
+  end
+
+  def reset_display
+    puts `tput reset`.chomp
   end
 
   def reply(topic_id = nil)
@@ -478,6 +484,7 @@ class Interface
     puts 'compose, c    - Add a new topic'
     puts 'reply #, r # - Reply to a specific topic'
     puts 'freshen, f   - Reload to get any new messages'
+    puts 'reset, clear - Fix screen in case of text corruption'
     puts
   end
 
