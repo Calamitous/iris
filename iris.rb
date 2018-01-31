@@ -277,12 +277,12 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics create quit freshen reply}
+  ONE_SHOTS = %w{help topics compose quit freshen reply}
   CMD_MAP = {
     't'       => 'topics',
     'topics'  => 'topics',
-    'c'       => 'create',
-    'create'  => 'create',
+    'c'       => 'compose',
+    'compose' => 'compose',
     'h'       => 'help',
     '?'       => 'help',
     'help'    => 'help',
@@ -348,7 +348,7 @@ class Interface
     nil
   end
 
-  def creating_handler(line)
+  def composing_handler(line)
     if line !~ /^\.$/
       if @text_buffer.empty?
         @text_buffer = line
@@ -369,9 +369,9 @@ class Interface
   end
 
   def handle(line)
-    return browsing_handler(line) if @mode == :browsing
-    return creating_handler(line) if @mode == :creating
-    return replying_handler(line) if @mode == :replying
+    return browsing_handler(line)  if @mode == :browsing
+    return composing_handler(line) if @mode == :composing
+    return replying_handler(line)  if @mode == :replying
   end
 
   def show_topic(num)
@@ -394,7 +394,7 @@ class Interface
   end
 
   def prompt
-    return 'new~> ' if @mode == :creating
+    return 'new~> ' if @mode == :composing
     return 'reply~> ' if @mode == :replying
     "#{Config::AUTHOR}~> "
   end
@@ -410,8 +410,8 @@ class Interface
     end
   end
 
-  def create
-    @mode = :creating
+  def compose
+    @mode = :composing
     @text_buffer = ''
     puts 'Writing a new topic.  Type a period on a line by itself to end message.'
   end
@@ -430,7 +430,7 @@ class Interface
     puts 'help, h, ?   - Display this text'
     puts 'topics, t    - List all topics'
     puts '# (topic id) - Read specified topic'
-    puts 'create, c    - Add a new topic'
+    puts 'compose, c    - Add a new topic'
     puts 'reply #, r # - Reply to a specific topic'
     puts 'freshen, f   - Reload to get any new messages'
     puts
