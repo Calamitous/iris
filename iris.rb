@@ -310,6 +310,7 @@ class Interface
     arg = tokens.last
     return reply(arg) if cmd == 'reply'
     puts 'Unrecognized command.  Type "help" for a list of available commands.'
+    nil
   end
 
   def reply(topic_id = nil)
@@ -350,6 +351,7 @@ class Interface
     end
     @reply_topic = nil
     @mode = :browsing
+    nil
   end
 
   def creating_handler(line)
@@ -369,6 +371,7 @@ class Interface
       puts 'Topic saved!'
     end
     @mode = :browsing
+    nil
   end
 
   def handle(line)
