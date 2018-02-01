@@ -476,7 +476,7 @@ class Interface
 
   def help
     puts
-    puts "Iris v#{Config::VERSION}"
+    puts "Iris v#{Config::VERSION} readline interface"
     puts
     puts 'Commands'
     puts '========'
@@ -515,7 +515,45 @@ class Interface
 end
 
 class CLI
+  def self.puts_help
+    puts
+    puts "Iris v#{Config::VERSION} command-line"
+    puts
+    puts 'Usage'
+    puts '========'
+    puts "#{__FILE__} [options]"
+    puts
+    puts 'Options'
+    puts '========'
+    puts '--help, -h        - Display this text.'
+    puts '--version, -v     - Display the current version of Iris.'
+    puts '--stats, -s       - Display data about the system.'
+    puts '--interactive, -i - Enter interactive mode (default)'
+    puts
+    puts 'If no options are provided, Iris will enter interactive mode.'
+  end
+
   def self.start(args)
+    if (args & %w{-v --version}).any?
+      puts "Iris #{Config::VERSION}"
+      exit(0)
+    end
+
+    if (args & %w{-h --help}).any?
+      puts_help
+      exit(0)
+    end
+
+    if (args & %w{-s --stats}).any?
+      Corpus.load
+      puts "Iris #{Config::VERSION}"
+      puts "#{Corpus.topics.size} topics."
+      puts "#{Corpus.all.size} messages total."
+      puts "#{Corpus.all.map(&:author).uniq.size} authors."
+      exit(0)
+    end
+    puts "Unrecognized option(s) #{args.join(', ')}"
+    puts "Try -h for help"
   end
 end
 
