@@ -3,13 +3,13 @@
 #  MVP: Complete!
 #
 # Reading/Status:
+# TODO: Add tests
+# TODO: CLI options for scripting
 # TODO: Add "read" list
 # TODO: Add read/unread count
 # TODO: Create read file for current user if it doesn't exist
-# TODO: CLI options for scripting
 #
 # Tech debt:
-# TODO: Add tests
 # TODO: Reeeeefactor...
 # TODO: Split helptext into separate file?
 # TODO: Move all puts into Display class
@@ -21,6 +21,8 @@
 # TODO: Let Message initialization accept params as a hash
 #
 # Fancify interface:
+# TODO: Gracefully handle attempt to "r 1 message"
+# TODO: Highlight names for readability
 # TODO: Use ENV for rows and cols of display? (No)
 # TODO: Pagination?
 # TODO: Make nicer topic display
@@ -249,7 +251,7 @@ class Message
   end
 
   def leader_text
-    is_topic? ? '***' : '==='
+    is_topic? ? '***' : '    === REPLY==='
   end
 
   def verb_text
@@ -260,6 +262,7 @@ class Message
     error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
     error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
     [
+      '',
       "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
       error_marker,
       errors,
