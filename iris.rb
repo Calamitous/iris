@@ -10,6 +10,7 @@
 #
 # Tech debt:
 # TODO: Add tests
+# TODO: Reeeeefactor...
 # TODO: Split helptext into separate file?
 # TODO: Move all puts into Display class
 # TODO: Make all output WIDTH-aware
@@ -26,6 +27,7 @@
 # TODO: Add optional title for topics
 # TODO: Add version, filenames, etc. to helptext
 # TODO: Add line marker for topics to show if they have replies
+# TODO: Add message when no topics are found
 #
 # Features:
 # TODO: Add read-only mode if user doesn't want/can't have message file
@@ -93,7 +95,7 @@ class IrisFile
         puts '(It\'s not a JSON array of messages, as far as I can tell)'
         puts 'Please fix or delete this message file to use Iris.'
         puts '*' * 80
-        exit(0)
+        exit(1)
       else
         puts " * Unable to interpret data from #{filepath}, skipping..."
         return []
