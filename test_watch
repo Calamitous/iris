@@ -1,0 +1,6 @@
+echo "Watching..."
+find . -name "*.rb" | entr sh -c 'clear; ruby iris_test.rb'
+
+# while inotifywait -r -e modify ./spec; do
+  # SKIP_PRECOMPILE=TRUE SKIP_LINT=TRUE ./test.sh $1
+  # done

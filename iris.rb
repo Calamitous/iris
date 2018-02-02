@@ -63,7 +63,60 @@ class Config
   AUTHOR       = "#{USER}@#{HOSTNAME}"
 
   def self.find_files
-    @@message_corpus ||= (`ls /home/**/.iris.messages`).split("\n")
+    (`ls /home/**/.iris.messages`).split("\n")
+  end
+end
+
+class Corpus
+  def self.load
+    @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
+    @@topics    = @@corpus.select{ |m| m.parent == nil }
+    @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
+    @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
+    @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
+      agg[msg.parent] ||= []
+      agg[msg.parent] << @@corpus.index(msg)
+      agg
+    end
+  end
+
+  def self.all
+    @@corpus
+  end
+
+  def self.topics
+    @@topics
+  end
+
+  def self.mine
+    @@my_corpus
+  end
+
+  def self.find_message_by_hash(hash)
+    return nil unless hash
+    index = @@all_hash_to_index[hash]
+    return nil unless index
+    all[index]
+  end
+
+  def self.find_all_by_parent_hash(hash)
+    return [] unless hash
+    indexes = @@all_parent_hash_to_index[hash]
+    return [] unless indexes
+    indexes.map{ |idx| all[idx] }
+  end
+
+  def self.find_topic(topic_lookup)
+    return nil unless topic_lookup
+    if topic_id.to_i == 0
+      # This must be a hash, handle appropriately
+      msg = find_message_by_hash(topic_id)
+      msg
+    else
+      # This must be an index, handle appropriately
+      index = topic_id.to_i - 1
+      return topics[index] if index >= 0 && index < topics.length
+    end
   end
 end
 
@@ -125,59 +178,6 @@ class IrisFile
   end
 end
 
-class Corpus
-  def self.load
-    @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
-    @@topics    = @@corpus.select{ |m| m.parent == nil }
-    @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
-    @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
-    @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
-      agg[msg.parent] ||= []
-      agg[msg.parent] << @@corpus.index(msg)
-      agg
-    end
-  end
-
-  def self.all
-    @@corpus
-  end
-
-  def self.topics
-    @@topics
-  end
-
-  def self.mine
-    @@my_corpus
-  end
-
-  def self.find_message_by_hash(hash)
-    return nil unless hash
-    index = @@all_hash_to_index[hash]
-    return nil unless index
-    all[index]
-  end
-
-  def self.find_all_by_parent_hash(hash)
-    return [] unless hash
-    indexes = @@all_parent_hash_to_index[hash]
-    return [] unless indexes
-    indexes.map{ |idx| all[idx] }
-  end
-
-  def self.find_topic(topic_id)
-    if topic_id.to_i == 0
-      # This must be a hash, handle appropriately
-      msg = find_message_by_hash(topic_id)
-      puts 'WARNING: Expected a topic but got a reply!' unless msg.is_topic?
-      msg
-    else
-      # This must be an index, handle appropriately
-      index = topic_id.to_i - 1
-      return topics[index] if index >= 0 && index < topics.length
-    end
-  end
-end
-
 class Message
   FILE_FORMAT = 'v2'
 
@@ -223,6 +223,10 @@ class Message
     @errors.empty?
   end
 
+  def topic?
+    parent.nil?
+  end
+
   def save!
     new_corpus = Corpus.mine << self
     IrisFile.write_corpus(new_corpus.to_json)
@@ -250,14 +254,6 @@ class Message
     [head, message_stub].join(' | ')
   end
 
-  def leader_text
-    is_topic? ? '***' : '    === REPLY==='
-  end
-
-  def verb_text
-    is_topic? ? 'posted' : 'replied'
-  end
-
   def to_display
     error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
     error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
@@ -277,20 +273,26 @@ class Message
     [to_display] + replies.map(&:to_display)
   end
 
-  def replies
-    Corpus.find_all_by_parent_hash(hash)
-  end
-
-  def is_topic?
-    parent.nil?
-  end
-
   def to_json(*args)
     {
       hash: hash,
       edit_hash: edit_hash,
       data: unconfirmed_payload
     }.to_json
+  end
+
+  private
+
+  def leader_text
+    topic? ? '***' : '    === REPLY==='
+  end
+
+  def verb_text
+    topic? ? 'posted' : 'replied'
+  end
+
+  def replies
+    Corpus.find_all_by_parent_hash(hash)
   end
 
   def unconfirmed_payload
@@ -312,7 +314,7 @@ class Display
   end
 
   def self.topic_author_width
-    Corpus.topics.map(&:author).map(&:length).max
+    Corpus.topics.map(&:author).map(&:length).max || 1
   end
 
   def self.print_index(index)
@@ -604,4 +606,4 @@ class Startupper
   end
 end
 
-Startupper.new(ARGV)
+Startupper.new(ARGV) if __FILE__==$0
