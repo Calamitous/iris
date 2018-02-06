@@ -3,21 +3,20 @@
 #  MVP: Complete!
 #
 # Reading/Status:
-# TODO: Add tests
-# TODO: CLI options for scripting
 # TODO: Add "read" list
 # TODO: Add read/unread count
 # TODO: Create read file for current user if it doesn't exist
 #
 # Tech debt:
 # TODO: Reeeeefactor...
+# TODO: Flesh out tests
 # TODO: Split helptext into separate file?
 # TODO: Move all puts into Display class
 # TODO: Make all output WIDTH-aware
 # TODO: Create struct to firm up message payload
 # TODO: Common message file location for the security-conscious?
 # TODO: Parse and manage options before instantiating Interface from .start
-# TODO: Validate config, read, and history perms on startup
+# TODO: Validate read and history perms on startup
 # TODO: Let Message initialization accept params as a hash
 #
 # Fancify interface:
@@ -52,6 +51,12 @@ require 'digest'
 require 'json'
 require 'etc'
 require 'readline'
+
+class String
+  def wrapped(width = Display::WIDTH)
+    self.gsub(/.{1,#{width}}(?:\s|\Z|\-)/){($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")}
+  end
+end
 
 class Config
   VERSION      = '1.0.0'
@@ -257,15 +262,18 @@ class Message
   def to_display
     error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
     error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
+
+    bar = indent_text + ('-' * (Display::WIDTH - indent_text.length))
+    message_text = message.wrapped(Display::WIDTH - indent_text.length).split("\n").map{|m| indent_text + m }.join("\n")
     [
       '',
       "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
       error_marker,
       errors,
       error_follower,
-      '-' * Display::WIDTH,
-      message,
-      '-' * Display::WIDTH
+      bar,
+      message_text,
+      bar
     ].flatten.compact.join("\n")
   end
 
@@ -289,6 +297,10 @@ class Message
 
   def verb_text
     topic? ? 'posted' : 'replied'
+  end
+
+  def indent_text
+    topic? ? '' : '    | '
   end
 
   def replies
