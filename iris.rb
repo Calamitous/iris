@@ -7,6 +7,10 @@
 # TODO: Add read/unread count
 # TODO: Create read file for current user if it doesn't exist
 #
+# Documentation
+# TODO: Add command-line options to README
+# TODO: Flesh out technical sections
+#
 # Tech debt:
 # TODO: Reeeeefactor...
 # TODO: Flesh out tests
