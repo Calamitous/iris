@@ -61,6 +61,11 @@ class String
   def wrapped(width = Display::WIDTH)
     self.gsub(/.{1,#{width}}(?:\s|\Z|\-)/){($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")}
   end
+
+  def pluralize(count)
+    return self if count == 1
+    self + 's'
+  end
 end
 
 class Config
@@ -133,6 +138,18 @@ class Corpus
 
   def self.read_hashes
     @@my_reads
+  end
+
+  def self.unread_messages
+    @@corpus.reject{ |m| @@my_reads.include? m.hash }
+  end
+
+  def self.unread_topics
+    @@topics.reject{ |m| @@my_reads.include? m.hash }
+  end
+
+  def self.size
+    @@corpus.size
   end
 end
 
@@ -615,8 +632,8 @@ class CLI
     if (args & %w{-s --stats}).any?
       Corpus.load
       puts "Iris #{Config::VERSION}"
-      puts "#{Corpus.topics.size} topics."
-      puts "#{Corpus.all.size} messages total."
+      puts "#{Corpus.topics.size} #{'topic'.pluralize(Corpus.topics.size)}, #{Corpus.unread_topics.size} unread."
+      puts "#{Corpus.size} #{'message'.pluralize(Corpus.size)}, #{Corpus.unread_messages.size} unread."
       puts "#{Corpus.all.map(&:author).uniq.size} authors."
       exit(0)
     end
