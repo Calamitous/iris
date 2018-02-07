@@ -5,7 +5,6 @@
 # Reading/Status:
 # TODO: Add "read" list
 # TODO: Add read/unread count
-# TODO: Create read file for current user if it doesn't exist
 #
 # Documentation
 # TODO: Add command-line options to README
@@ -22,6 +21,7 @@
 # TODO: Parse and manage options before instantiating Interface from .start
 # TODO: Validate read and history perms on startup
 # TODO: Let Message initialization accept params as a hash
+# TODO: Add checking for message file format version
 #
 # Fancify interface:
 # TODO: Gracefully handle attempt to "r 1 message"
@@ -144,7 +144,7 @@ class IrisFile
         puts "Could not parse valid JSON from #{filepath}"
         puts 'Please fix or delete this message file to use Iris.'
         puts '*' * 80
-        exit(0)
+        exit(1)
       else
         puts " * Unable to parse #{filepath}, skipping..."
         return []
@@ -177,7 +177,7 @@ class IrisFile
   end
 
   def self.create_message_file
-    raise 'File exists; refusing to overwrite!' if File.exists?(Config::MESSAGE_FILE)
+    raise 'Message file exists; refusing to overwrite!' if File.exists?(Config::MESSAGE_FILE)
     File.umask(0122)
     File.open(Config::MESSAGE_FILE, 'w') { |f| f.write('[]') }
   end
@@ -268,7 +268,7 @@ class Message
     error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
 
     bar = indent_text + ('-' * (Display::WIDTH - indent_text.length))
-    message_text = message.wrapped(Display::WIDTH - indent_text.length).split("\n").map{|m| indent_text + m }.join("\n")
+    message_text = message.wrapped(Display::WIDTH - (indent_text.length + 1)).split("\n").map{|m| indent_text + m }.join("\n")
     [
       '',
       "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
