@@ -243,8 +243,8 @@ class IrisFile
     File.write(Config::MESSAGE_FILE, corpus)
   end
 
-  def self.write_read_file(read_hashes)
-    File.write(Config::READ_FILE, read_hashes)
+  def self.write_read_file(new_read_hashes)
+    File.write(Config::READ_FILE, new_read_hashes)
   end
 end
 
@@ -521,6 +521,8 @@ class Interface
     else
       puts 'Could not find a topic with that ID'
     end
+
+    nil
   end
 
   def quit
