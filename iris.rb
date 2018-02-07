@@ -33,6 +33,7 @@
 # TODO: Add version, filenames, etc. to helptext
 # TODO: Add line marker for topics to show if they have replies
 # TODO: Add message when no topics are found
+# TODO: Add message troubleshooting option, for deep data dive
 #
 # Features:
 # TODO: Add read-only mode if user doesn't want/can't have message file
@@ -66,6 +67,7 @@ class Config
   VERSION      = '1.0.1'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
+  READ_FILE    = "#{ENV['HOME']}/.iris.read"
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
@@ -81,6 +83,7 @@ class Corpus
     @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
     @@topics    = @@corpus.select{ |m| m.parent == nil }
     @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
+    @@my_reads = IrisFile.load_reads
     @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
     @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
       agg[msg.parent] ||= []
@@ -126,6 +129,10 @@ class Corpus
       index = topic_id.to_i - 1
       return topics[index] if index >= 0 && index < topics.length
     end
+  end
+
+  def self.read_hashes
+    @@my_reads
   end
 end
 
@@ -176,14 +183,51 @@ class IrisFile
     end
   end
 
+  def self.load_reads
+    return [] unless File.exists? Config::READ_FILE
+
+    begin
+      read_array = JSON.parse(File.read(Config::READ_FILE))
+    rescue JSON::ParserError => e
+      puts '*' * 80
+      puts 'Your read file appears to be corrupt.'
+      puts "Could not parse valid JSON from #{Config::READ_FILE}"
+      puts 'Please fix or delete this read file to use Iris.'
+      puts '*' * 80
+      exit(1)
+    end
+
+    unless read_array.is_a?(Array)
+      puts '*' * 80
+      puts 'Your read file appears to be corrupt.'
+      puts "Could not interpret data from #{Config::READ_FILE}"
+      puts '(It\'s not a JSON array of message hashes, as far as I can tell)'
+      puts 'Please fix or delete this read file to use Iris.'
+      puts '*' * 80
+      exit(1)
+    end
+
+    read_array
+  end
+
   def self.create_message_file
     raise 'Message file exists; refusing to overwrite!' if File.exists?(Config::MESSAGE_FILE)
     File.umask(0122)
     File.open(Config::MESSAGE_FILE, 'w') { |f| f.write('[]') }
   end
 
+  def self.create_read_file
+    raise 'Read file exists; refusing to overwrite!' if File.exists?(Config::READ_FILE)
+    File.umask(0122)
+    File.open(Config::READ_FILE, 'w') { |f| f.write('[]') }
+  end
+
   def self.write_corpus(corpus)
     File.write(Config::MESSAGE_FILE, corpus)
+  end
+
+  def self.write_read_file(read_hashes)
+    File.write(Config::READ_FILE, read_hashes)
   end
 end
 
@@ -293,6 +337,10 @@ class Message
     }.to_json
   end
 
+  def replies
+    Corpus.find_all_by_parent_hash(hash)
+  end
+
   private
 
   def leader_text
@@ -305,10 +353,6 @@ class Message
 
   def indent_text
     topic? ? '' : '    | '
-  end
-
-  def replies
-    Corpus.find_all_by_parent_hash(hash)
   end
 
   def unconfirmed_payload
@@ -454,6 +498,9 @@ class Interface
       msg = Corpus.topics[index]
       @reply_topic = msg.hash
       puts msg.to_topic_display
+      new_reads = (Corpus.read_hashes + [msg.hash] + msg.replies.map(&:hash)).uniq.sort
+      IrisFile.write_read_file(new_reads.to_json)
+      Corpus.load
     else
       puts 'Could not find a topic with that ID'
     end
@@ -602,12 +649,22 @@ class Startupper
       end
     end
 
+    IrisFile.create_read_file unless File.exists?(Config::READ_FILE)
+
     if File.stat(Config::MESSAGE_FILE).mode != 33188
       puts '*' * 80
       puts 'Your message file has incorrect permissions!  Should be "-rw-r--r--".'
       puts 'You can change this from the command line with:'
       puts "  chmod 644 #{Config::MESSAGE_FILE}"
       puts 'Leaving your file with incorrect permissions could allow unauthorized edits!'
+      puts '*' * 80
+    end
+
+    if File.stat(Config::READ_FILE).mode != 33188
+      puts '*' * 80
+      puts 'Your read file has incorrect permissions!  Should be "-rw-r--r--".'
+      puts 'You can change this from the command line with:'
+      puts "  chmod 644 #{Config::READ_FILE}"
       puts '*' * 80
     end
 
