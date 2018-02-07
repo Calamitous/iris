@@ -1,10 +1,7 @@
 #!/usr/bin/env ruby
 
 #  MVP: Complete!
-#
-# Reading/Status:
-# TODO: Add "read" list
-# TODO: Add read/unread count
+# Reading/Status: Complete!
 #
 # Documentation
 # TODO: Add command-line options to README
