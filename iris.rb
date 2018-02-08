@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-#  MVP: Complete!
+# MVP: Complete!
 # Reading/Status: Complete!
 #
 # Documentation
@@ -11,7 +11,6 @@
 # TODO: Reeeeefactor...
 # TODO: Flesh out tests
 # TODO: Split helptext into separate file?
-# TODO: Move all puts into Display class
 # TODO: Make all output WIDTH-aware
 # TODO: Create struct to firm up message payload
 # TODO: Common message file location for the security-conscious?
@@ -70,6 +69,7 @@ class Config
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   READ_FILE    = "#{ENV['HOME']}/.iris.read"
+  IRIS_SCRIPT  = __FILE__
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
@@ -152,37 +152,35 @@ end
 
 class IrisFile
   def self.load_messages(filepath = Config::MESSAGE_FILE)
-    # For logger: puts "Checking #{filepath}"
+    # For logger: "Checking #{filepath}"
     return [] unless File.exists?(filepath)
 
-    # For logger: puts "Found, parsing #{filepath}..."
+    # For logger: "Found, parsing #{filepath}..."
     begin
       payload = JSON.parse(File.read(filepath))
     rescue JSON::ParserError => e
       if filepath == Config::MESSAGE_FILE
-        puts '*' * 80
-        puts 'Your message file appears to be corrupt.'
-        puts "Could not parse valid JSON from #{filepath}"
-        puts 'Please fix or delete this message file to use Iris.'
-        puts '*' * 80
+        Display.flowerbox(
+          'Your message file appears to be corrupt.',
+          "Could not parse valid JSON from #{filepath}",
+          'Please fix or delete this message file to use Iris.')
         exit(1)
       else
-        puts " * Unable to parse #{filepath}, skipping..."
+        Display.say " * Unable to parse #{filepath}, skipping..."
         return []
       end
     end
 
     unless payload.is_a?(Array)
       if filepath == Config::MESSAGE_FILE
-        puts '*' * 80
-        puts 'Your message file appears to be corrupt.'
-        puts "Could not interpret data from #{filepath}"
-        puts '(It\'s not a JSON array of messages, as far as I can tell)'
-        puts 'Please fix or delete this message file to use Iris.'
-        puts '*' * 80
+        Display.flowerbox(
+          'Your message file appears to be corrupt.',
+          "Could not interpret data from #{filepath}",
+          '(It\'s not a JSON array of messages, as far as I can tell)',
+          'Please fix or delete this message file to use Iris.')
         exit(1)
       else
-        puts " * Unable to interpret data from #{filepath}, skipping..."
+        Display.say " * Unable to interpret data from #{filepath}, skipping..."
         return []
       end
     end
@@ -203,21 +201,19 @@ class IrisFile
     begin
       read_array = JSON.parse(File.read(Config::READ_FILE))
     rescue JSON::ParserError => e
-      puts '*' * 80
-      puts 'Your read file appears to be corrupt.'
-      puts "Could not parse valid JSON from #{Config::READ_FILE}"
-      puts 'Please fix or delete this read file to use Iris.'
-      puts '*' * 80
+      Display.flowerbox(
+        'Your read file appears to be corrupt.',
+        "Could not parse valid JSON from #{Config::READ_FILE}",
+        'Please fix or delete this read file to use Iris.')
       exit(1)
     end
 
     unless read_array.is_a?(Array)
-      puts '*' * 80
-      puts 'Your read file appears to be corrupt.'
-      puts "Could not interpret data from #{Config::READ_FILE}"
-      puts '(It\'s not a JSON array of message hashes, as far as I can tell)'
-      puts 'Please fix or delete this read file to use Iris.'
-      puts '*' * 80
+      Display.flowerbox(
+        'Your read file appears to be corrupt.',
+        "Could not interpret data from #{Config::READ_FILE}",
+        '(It\'s not a JSON array of message hashes, as far as I can tell)',
+        'Please fix or delete this read file to use Iris.')
       exit(1)
     end
 
@@ -383,6 +379,16 @@ class Display
   MIN_WIDTH = 80
   WIDTH = [ENV['COLUMNS'].to_i, `tput cols`.chomp.to_i, MIN_WIDTH].compact.max
 
+  def self.flowerbox(*lines, box_character: '*', box_thickness: 1)
+    box_thickness.times do say box_character * WIDTH end
+    lines.each { |line| say line }
+    box_thickness.times do say box_character * WIDTH end
+  end
+
+  def self.say(stuff = '')
+    puts stuff
+  end
+
   def self.topic_index_width
     Corpus.topics.size.to_s.length
   end
@@ -431,32 +437,33 @@ class Interface
     # We must have args, let's handle 'em
     arg = tokens.last
     return reply(arg) if cmd == 'reply'
-    puts 'Unrecognized command.  Type "help" for a list of available commands.'
-    nil
+    Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
   end
 
   def reset_display
-    puts `tput reset`.chomp
+    Display.say `tput reset`.chomp
   end
 
   def reply(topic_id = nil)
     topic_id ||= @reply_topic
     unless topic_id
-      puts "I can't reply to nothing! Include a topic ID or view a topic to reply to."
+      Display.say "I can't reply to nothing! Include a topic ID or view a topic to reply to."
       return
     end
 
     if parent = Corpus.find_topic(topic_id)
       @reply_topic = parent.hash
     else
-      puts "Could not reply; unable to find a topic with ID '#{topic_id}'"
+      Display.say "Could not reply; unable to find a topic with ID '#{topic_id}'"
       return
     end
 
     @mode = :replying
     @text_buffer = ''
-    title = Corpus.find_topic(parent.hash).truncated_message(80)
-    puts "Writing a reply to topic '#{title}'.  Type a period on a line by itself to end message."
+    title = Corpus.find_topic(parent.hash).truncated_message(Display::WIDTH - 26)
+    Display.say
+    Display.say "Writing a reply to topic '#{title}'"
+    Display.say 'Type a period on a line by itself to end message.'
   end
 
   def replying_handler(line)
@@ -470,14 +477,13 @@ class Interface
     end
 
     if @text_buffer.length <= 1
-      puts 'Empty message, discarding...'
+      Display.say 'Empty message, discarding...'
     else
       Message.new(@text_buffer, @reply_topic).save!
-      puts 'Reply saved!'
+      Display.say 'Reply saved!'
     end
     @reply_topic = nil
     @mode = :browsing
-    nil
   end
 
   def composing_handler(line)
@@ -491,13 +497,12 @@ class Interface
     end
 
     if @text_buffer.length <= 1
-      puts 'Empty message, discarding...'
+      Display.say 'Empty message, discarding...'
     else
       Message.new(@text_buffer).save!
-      puts 'Topic saved!'
+      Display.say 'Topic saved!'
     end
     @mode = :browsing
-    nil
   end
 
   def handle(line)
@@ -511,15 +516,16 @@ class Interface
     if index >= 0 && index < Corpus.topics.length
       msg = Corpus.topics[index]
       @reply_topic = msg.hash
-      puts msg.to_topic_display
+
+      Display.say msg.to_topic_display
+      Display.say
+
       new_reads = (Corpus.read_hashes + [msg.hash] + msg.replies.map(&:hash)).uniq.sort
       IrisFile.write_read_file(new_reads.to_json)
       Corpus.load
     else
-      puts 'Could not find a topic with that ID'
+      Display.say 'Could not find a topic with that ID'
     end
-
-    nil
   end
 
   def quit
@@ -541,42 +547,45 @@ class Interface
     @history_loaded = false
     @mode = :browsing
 
-    puts "Welcome to Iris v#{Config::VERSION}.  Type 'help' for a list of commands; Ctrl-D or 'quit' to leave."
+    Display.say "Welcome to Iris v#{Config::VERSION}.  Type 'help' for a list of commands; Ctrl-D or 'quit' to leave."
     while line = readline(prompt) do
-      puts handle(line)
+      handle(line)
     end
   end
 
   def compose
     @mode = :composing
     @text_buffer = ''
-    puts 'Writing a new topic.  Type a period on a line by itself to end message.'
+    Display.say 'Writing a new topic.  Type a period on a line by itself to end message.'
   end
 
   def topics
-    Corpus.topics.each_with_index { |topic, index| puts topic.to_topic_line(index + 1) }
-    nil
+    Display.say
+    Corpus.topics.each_with_index do |topic, index|
+      Display.say topic.to_topic_line(index + 1)
+    end
+    Display.say
   end
 
   def help
-    puts
-    puts "Iris v#{Config::VERSION} readline interface"
-    puts
-    puts 'Commands'
-    puts '========'
-    puts 'help, h, ?   - Display this text'
-    puts 'topics, t    - List all topics'
-    puts '# (topic id) - Read specified topic'
-    puts 'compose, c    - Add a new topic'
-    puts 'reply #, r # - Reply to a specific topic'
-    puts 'freshen, f   - Reload to get any new messages'
-    puts 'reset, clear - Fix screen in case of text corruption'
-    puts
+    Display.flowerbox(
+      "Iris v#{Config::VERSION} readline interface",
+      '',
+      'Commands',
+      '========',
+      'help, h, ?   - Display this text',
+      'topics, t    - List all topics',
+      '# (topic id) - Read specified topic',
+      'compose, c    - Add a new topic',
+      'reply #, r # - Reply to a specific topic',
+      'freshen, f   - Reload to get any new messages',
+      'reset, clear - Fix screen in case of text corruption',
+      box_character: '')
   end
 
   def freshen
     Corpus.load
-    puts 'Reloaded!'
+    Display.say 'Reloaded!'
   end
 
   def readline(prompt)
@@ -599,45 +608,48 @@ class Interface
 end
 
 class CLI
-  def self.puts_help
-    puts
-    puts "Iris v#{Config::VERSION} command-line"
-    puts
-    puts 'Usage'
-    puts '========'
-    puts "#{__FILE__} [options]"
-    puts
-    puts 'Options'
-    puts '========'
-    puts '--help, -h        - Display this text.'
-    puts '--version, -v     - Display the current version of Iris.'
-    puts '--stats, -s       - Display data about the system.'
-    puts '--interactive, -i - Enter interactive mode (default)'
-    puts
-    puts 'If no options are provided, Iris will enter interactive mode.'
+  def self.print_help
+    Display.flowerbox(
+      "Iris v#{Config::VERSION} command-line",
+      '',
+      'Usage',
+      '========',
+      "#{__FILE__} [options]",
+      '',
+      'Options',
+      '========',
+      '--help, -h        - Display this text.',
+      '--version, -v     - Display the current version of Iris.',
+      '--stats, -s       - Display data about the system.',
+      '--interactive, -i - Enter interactive mode (default)',
+      '',
+      'If no options are provided, Iris will enter interactive mode.',
+      box_character: '')
   end
 
   def self.start(args)
     if (args & %w{-v --version}).any?
-      puts "Iris #{Config::VERSION}"
+      Display.say "Iris #{Config::VERSION}"
       exit(0)
     end
 
     if (args & %w{-h --help}).any?
-      puts_help
+      print_help
       exit(0)
     end
 
     if (args & %w{-s --stats}).any?
       Corpus.load
-      puts "Iris #{Config::VERSION}"
-      puts "#{Corpus.topics.size} #{'topic'.pluralize(Corpus.topics.size)}, #{Corpus.unread_topics.size} unread."
-      puts "#{Corpus.size} #{'message'.pluralize(Corpus.size)}, #{Corpus.unread_messages.size} unread."
-      puts "#{Corpus.all.map(&:author).uniq.size} authors."
+      Display.flowerbox(
+        "Iris #{Config::VERSION}",
+        "#{Corpus.topics.size} #{'topic'.pluralize(Corpus.topics.size)}, #{Corpus.unread_topics.size} unread.",
+        "#{Corpus.size} #{'message'.pluralize(Corpus.size)}, #{Corpus.unread_messages.size} unread.",
+        "#{Corpus.all.map(&:author).uniq.size} authors.",
+          box_thickness: 0)
       exit(0)
     end
-    puts "Unrecognized option(s) #{args.join(', ')}"
-    puts "Try -h for help"
+    Display.say "Unrecognized option(s) #{args.join(', ')}"
+    Display.say "Try -h for help"
   end
 end
 
@@ -654,13 +666,13 @@ class Startupper
 
   def perform_startup_checks
     unless File.exists?(Config::MESSAGE_FILE)
-      puts "You don't have a message file at #{Config::MESSAGE_FILE}."
+      Display.say "You don't have a message file at #{Config::MESSAGE_FILE}."
       response = Readline.readline 'Would you like me to create it for you? (y/n) ', true
 
       if /[Yy]/ =~ response
         IrisFile.create_message_file
       else
-        puts 'Cannot run Iris without a message file!'
+        Display.say 'Cannot run Iris without a message file!'
         exit(1)
       end
     end
@@ -668,29 +680,26 @@ class Startupper
     IrisFile.create_read_file unless File.exists?(Config::READ_FILE)
 
     if File.stat(Config::MESSAGE_FILE).mode != 33188
-      puts '*' * 80
-      puts 'Your message file has incorrect permissions!  Should be "-rw-r--r--".'
-      puts 'You can change this from the command line with:'
-      puts "  chmod 644 #{Config::MESSAGE_FILE}"
-      puts 'Leaving your file with incorrect permissions could allow unauthorized edits!'
-      puts '*' * 80
+      Display.flowerbox(
+        'Your message file has incorrect permissions!  Should be "-rw-r--r--".',
+        'You can change this from the command line with:',
+        "  chmod 644 #{Config::MESSAGE_FILE}",
+        'Leaving your file with incorrect permissions could allow unauthorized edits!')
     end
 
     if File.stat(Config::READ_FILE).mode != 33188
-      puts '*' * 80
-      puts 'Your read file has incorrect permissions!  Should be "-rw-r--r--".'
-      puts 'You can change this from the command line with:'
-      puts "  chmod 644 #{Config::READ_FILE}"
-      puts '*' * 80
+      Display.flowerbox(
+        'Your read file has incorrect permissions!  Should be "-rw-r--r--".',
+        'You can change this from the command line with:',
+        "  chmod 644 #{Config::READ_FILE}")
     end
 
-    if File.stat(__FILE__).mode != 33261
-      puts '*' * 80
-      puts 'The Iris file has incorrect permissions!  Should be "-rwxr-xr-x".'
-      puts 'You can change this from the command line with:'
-      puts "  chmod 755 #{__FILE__}"
-      puts 'If this file has the wrong permissions the program may be tampered with!'
-      puts '*' * 80
+    if File.stat(Config::IRIS_SCRIPT).mode != 33261
+      Display.flowerbox(
+        'The Iris file has incorrect permissions!  Should be "-rwxr-xr-x".',
+        'You can change this from the command line with:',
+        "  chmod 755 #{__FILE__}",
+        'If this file has the wrong permissions the program may be tampered with!')
     end
   end
 end

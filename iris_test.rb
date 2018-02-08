@@ -214,6 +214,87 @@ describe CLI do
 end
 
 describe Startupper do
-  describe 'creation' do; end
-  describe 'perform_startup_checks' do; end
+  describe 'creation' do
+    let(:message_file_path) { 'jerryberry/.iris.messages' }
+    let(:read_file_path)    { 'jerryberry/.iris.read' }
+    let(:data_file_stat)    { a = mock; a.stubs(:mode).returns(33188); a }
+    let(:script_file_stat)  { a = mock; a.stubs(:mode).returns(33261); a }
+    let(:bad_file_stat)     { a = mock; a.stubs(:mode).returns(2); a }
+
+    before do
+      Config.send(:remove_const, 'MESSAGE_FILE')
+      Config.send(:remove_const, 'READ_FILE')
+      Config.send(:remove_const, 'IRIS_SCRIPT')
+      Config::MESSAGE_FILE = message_file_path
+      Config::READ_FILE    = read_file_path
+      Config::IRIS_SCRIPT  = 'doots'
+
+      File.stubs(:exists?).returns(true)
+
+      File.stubs(:stat).with(Config::IRIS_SCRIPT).returns(script_file_stat)
+      File.stubs(:stat).with(message_file_path).returns(data_file_stat)
+      File.stubs(:stat).with(read_file_path).returns(data_file_stat)
+
+      Interface.stubs(:start)
+      Display.stubs(:say)
+    end
+
+    it 'offers to create a message file if the user doesn\'t have one' do
+      skip
+      File.stubs(:exists?).with(message_file_path).returns(false)
+      Readline.expects(:readline).with('Would you like me to create it for you? (y/n) ', true).returns('y')
+      IrisFile.expects(:create_message_file)
+
+      Startupper.new([])
+    end
+
+    it 'creates a read file if the user doesn\'t have one' do
+      skip
+      File.stubs(:exists?).with(read_file_path).returns(false)
+      IrisFile.expects(:create_read_file)
+
+      Startupper.new([])
+    end
+
+    it 'warns the user if the message file permissions are wrong' do
+      File.stubs(:stat).with(message_file_path).returns(bad_file_stat)
+      Display.expects(:say).with('Your message file has incorrect permissions!  Should be "-rw-r--r--".')
+
+      Startupper.new([])
+    end
+
+    it 'warns the user if the read file permissions are wrong' do
+      File.stubs(:stat).with(read_file_path).returns(bad_file_stat)
+      Display.expects(:say).with('Your read file has incorrect permissions!  Should be "-rw-r--r--".')
+
+      Startupper.new([])
+    end
+
+    it 'warns the user if the script file permissions are wrong' do
+      File.expects(:stat).with(Config::IRIS_SCRIPT).returns(bad_file_stat)
+      Display.expects(:say).with('The Iris file has incorrect permissions!  Should be "-rwxr-xr-x".')
+
+      Startupper.new([])
+    end
+
+    it 'starts the Interface if no command-line arguments are provided' do
+      Interface.expects(:start).with([])
+      Startupper.new([])
+    end
+
+    it 'starts the Interface if "-i" is provided at the command-line' do
+      Interface.expects(:start).with(['-i'])
+      Startupper.new(['-i'])
+    end
+
+    it 'starts the Interface if "--interactive" is provided at the command-line' do
+      Interface.expects(:start).with(['--interactive'])
+      Startupper.new(['--interactive'])
+    end
+
+    it 'starts the CLI if any non-interactive parameters are provided at the command-line' do
+      CLI.expects(:start).with(['-h'])
+      Startupper.new(['-h'])
+    end
+  end
 end
