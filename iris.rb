@@ -122,13 +122,13 @@ class Corpus
 
   def self.find_topic(topic_lookup)
     return nil unless topic_lookup
-    if topic_id.to_i == 0
+    if topic_lookup.to_i == 0
       # This must be a hash, handle appropriately
-      msg = find_message_by_hash(topic_id)
+      msg = find_message_by_hash(topic_lookup)
       msg
     else
       # This must be an index, handle appropriately
-      index = topic_id.to_i - 1
+      index = topic_lookup.to_i - 1
       return topics[index] if index >= 0 && index < topics.length
     end
   end
