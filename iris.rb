@@ -8,43 +8,40 @@
 # TODO: Flesh out technical sections
 #
 # Tech debt:
-# TODO: Reeeeefactor...
+# TODO: Refactor
 # TODO: Flesh out tests
 # TODO: Split helptext into separate file?
 # TODO: Make all output WIDTH-aware
 # TODO: Create struct to firm up message payload
-# TODO: Common message file location for the security-conscious?
-# TODO: Parse and manage options before instantiating Interface from .start
-# TODO: Validate read and history perms on startup
 # TODO: Let Message initialization accept params as a hash
 # TODO: Add checking for message file format version
+#
+# Features:
+# TODO: Add full message corpus dump for backup/debugging
+# TODO: Gracefully handle bad message files
+# TODO: Add read-only mode if user doesn't want/can't have message file
+# TODO: Add user muting (~/.iris.muted)
+# TODO: Message deletion
+# TODO: Message editing
+# TODO: Add startup enviro health check
+# TODO: Add message editing
 #
 # Fancify interface:
 # TODO: Gracefully handle attempt to "r 1 message"
 # TODO: Highlight names for readability
 # TODO: Use ENV for rows and cols of display? (No)
 # TODO: Pagination?
-# TODO: Make nicer topic display
 # TODO: Add optional title for topics
-# TODO: Add version, filenames, etc. to helptext
 # TODO: Add line marker for topics to show if they have replies
 # TODO: Add message when no topics are found
-# TODO: Add message troubleshooting option, for deep data dive
-#
-# Features:
-# TODO: Add read-only mode if user doesn't want/can't have message file
-# TODO: Add user muting
-# TODO: Add .mute.iris support?
-# TODO: Message deletion
-# TODO: Add startup enviro health check
-# TODO: Add message editing
-# TODO: Add full message corpus dump for backup/debugging
+# TODO: Add message troubleshooting tool, for deep data dive
 #
 # Later/Maybe:
 # * ncurses client
 # * customizable prompt
 # * MOTD
 # * Add to default startup script to display read count
+# * Common message file location for the security-conscious
 
 require 'time'
 require 'base64'
