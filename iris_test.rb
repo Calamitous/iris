@@ -102,17 +102,23 @@ describe Corpus do
     it 'returns the messages associated with the parent hash'
   end
 
-  describe '.find_topic' do
+  describe '.find_topic_by_id' do
     it 'returns nil if a nil is passed in' do
-      Corpus.find_topic(nil).must_equal nil
-    end
-
-    describe 'when a hash string is passed in' do
-      it 'returns nil if the topic is not found'
-      it 'returns the associated topic'
+      Corpus.find_topic_by_id(nil).must_equal nil
     end
 
     describe 'when an index string is passed in' do
+      it 'returns nil if the topic is not found'
+      it 'returns the associated topic'
+    end
+  end
+
+  describe '.find_topic_by_hash' do
+    it 'returns nil if a nil is passed in' do
+      Corpus.find_topic_by_hash(nil).must_equal nil
+    end
+
+    describe 'when a hash string is passed in' do
       it 'returns nil if the topic is not found'
       it 'returns the associated topic'
     end

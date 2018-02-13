@@ -50,6 +50,7 @@ require 'digest'
 require 'json'
 require 'etc'
 require 'readline'
+# require 'pry' # Only needed for debugging
 
 class String
   def wrapped(width = Display::WIDTH)
@@ -118,17 +119,15 @@ class Corpus
     indexes.map{ |idx| all[idx] }
   end
 
-  def self.find_topic(topic_lookup)
+  def self.find_topic_by_id(topic_lookup)
     return nil unless topic_lookup
-    if topic_lookup.to_i == 0
-      # This must be a hash, handle appropriately
-      msg = find_message_by_hash(topic_lookup)
-      msg
-    else
-      # This must be an index, handle appropriately
-      index = topic_lookup.to_i - 1
-      return topics[index] if index >= 0 && index < topics.length
-    end
+    index = topic_lookup.to_i - 1
+    topics[index] if index >= 0 && index < topics.length
+  end
+
+  def self.find_topic_by_hash(topic_lookup)
+    return nil unless topic_lookup
+    find_message_by_hash(topic_lookup)
   end
 
   def self.read_hashes
@@ -449,7 +448,7 @@ class Interface
       return
     end
 
-    if parent = Corpus.find_topic(topic_id)
+    if parent = Corpus.find_topic_by_id(topic_id)
       @reply_topic = parent.hash
     else
       Display.say "Could not reply; unable to find a topic with ID '#{topic_id}'"
@@ -458,7 +457,7 @@ class Interface
 
     @mode = :replying
     @text_buffer = ''
-    title = Corpus.find_topic(parent.hash).truncated_message(Display::WIDTH - 26)
+    title = Corpus.find_topic_by_hash(parent.hash).truncated_message(Display::WIDTH - 26)
     Display.say
     Display.say "Writing a reply to topic '#{title}'"
     Display.say 'Type a period on a line by itself to end message.'
