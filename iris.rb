@@ -27,12 +27,13 @@
 # TODO: Add message editing
 #
 # Fancify interface:
+# TODO: Add (read/unread) counts to topic line
+# TODO: Add reader/user count to stats
 # TODO: Gracefully handle attempt to "r 1 message"
 # TODO: Highlight names for readability
-# TODO: Use ENV for rows and cols of display? (No)
+# TODO: Readline.completion_proc for tab completion
 # TODO: Pagination?
 # TODO: Add optional title for topics
-# TODO: Add line marker for topics to show if they have replies
 # TODO: Add message when no topics are found
 # TODO: Add message troubleshooting tool, for deep data dive
 #
