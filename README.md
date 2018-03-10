@@ -1,6 +1,19 @@
 # Iris
 ## Serverless text-based forum for tilde-likes
 
+Iris is a tiny bit of shared message and file convention that pretends to be forum software.
+
+It is a fully usable message system, designed for use between different users on a single server.
+
+Iris is strictly text-based, requiring no GUI or web servers.
+
+ * [Installation](#installation)
+ * [Usage](#usage)
+ * [Commands](#commands)
+ * [Philosophy](#philosophy)
+ * [Technical Bits](#technical-bits)
+ * [License](#license)
+
 ### Installation
 
 At its core, Iris is simply a single, executable Ruby script.  It has been tested and is known to work with Ruby 2.3.5.  No extra gems or libraries are required.
@@ -29,6 +42,14 @@ jimmy_foo@ctrl-c.club>
 ```
 
 ### Commands
+
+ * [[t]opics](#topics)
+ * [Display topic](#display-topic)
+ * [[c]ompose](#compose)
+ * [[r]eply](#reply)
+ * [[f]reshen](#freshen)
+ * [reset OR clear](#reset-or-clear)
+ * [[h]elp](#help)
 
 #### [t]opics
 `topics, t    - List all topics`
@@ -144,21 +165,53 @@ This clears the screen and resets the cursor. If you experience screen corruptio
 
 This displays helpful reminders of the commands that Iris supports.
 
-### Serverless?  How does _that_ work?
+### Philosophy
 
-`<IN PROGRESS>`
+Iris must:
+  * Be a single file
+    * There should be no required directory structure or complicated setup.
+    * Run a single file, answer one question, and you should be going with Iris!
+  * Not require administrator intervention to install
+    * Any user on a tilde, or with his or her own server, should be able to start using Iris just by running the file.
+  * Not require any other software to function
+    * No databases, web servers, GUIs, or frameworks are require to use Iris fully.
+  * Require only Ruby
+    * Not everybody uses Ruby or is familiar with the Ruby ecosystem.
+    * Installing gems and libraries can be a major hassle if you don't have admin access or if there are library version conflicts.
+    * Iris needs no extra gems or libraries to function.
+  * Be durable
+    * A user deleting or modifying his or her messages or message file should not break Iris.
+    * Deleted or edited messages should leave flags or placeholders for other users to know that other content was there before.
+    * The Iris client should expect that any message file could be missing, altered, or corrupted, and should handle those cases gracefully.
+  * Be portable
+    * All Iris files should be human-readable (and -editable, in a pinch)
+    * The use of the official Iris client should be optional for a user to manage his or her messages.  A text editor should suffice.
+    * Other clients which follow the Iris file format should work seamlessly with the official Iris client.
+  * Be secure
+    * Message files should be owned and only editable by their author.
+    * Iris should warn the user if this is not the case.
 
-### Conventions
+### Technical Bits
 
-Iris leans heavily on convention.  Iris' security and message authentication is provided by filesystem permissions and message hashing.  Details can be found in #Technical Bits
+  * [Conventions](#conventions)
+  * [Message Files](#message-files)
+  * [Messages](#messages)
+    * [Message Hash](#message-hash)
+      * [Bad Hashes](#bad-hashes)
+    * [Edit Chain](#edit-chain)
+    * [Deleted Messages](#deleted-messages)
+  * [Topic List](#topic-list)
+  * [Replies](#replies)
 
+#### Conventions
+
+Iris leans heavily on convention.  Iris' security and message authentication is provided by filesystem permissions and message hashing.
 
 #### Message Files
 
-Each user has their own message file.  This contains all the messages that the user has written.  By convention it is named `iris.messages` and is located either in the user's home directory, or the user's directory in the shared message space:
+Each user has their own message file.  This is a JSON file containing all the messages that the user has authored.  It is named `.iris.messages` and is located in the user's home directory.
 
 `/home/jimmy_foo/.iris.messages`
-`/var/iris/jimmy_foo/.iris.messages`
 
 In order to operate correctly and safely, this file _must_ be:
 * World-readable
@@ -171,9 +224,15 @@ In order to operate correctly and safely, this file _must_ be:
 -rw-r--r-- 1 jimmy_foo jimmy_foo /home/jimmy_foo/.iris.messages
 ```
 
-### Technical Bits
+#### Messages
+##### Message Hash
+###### Bad Hashes
+##### Edit Chain
+##### Deleted Messages
 
-`<IN PROGRESS>`
+#### Topic List
+
+####Replies
 
 ### License
 GPLv2
