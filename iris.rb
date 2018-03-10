@@ -93,6 +93,10 @@ class Corpus
     end
   end
 
+  def self.to_json
+    @@corpus.to_json
+  end
+
   def self.all
     @@corpus
   end
@@ -619,6 +623,7 @@ class CLI
       '--version, -v     - Display the current version of Iris.',
       '--stats, -s       - Display data about the system.',
       '--interactive, -i - Enter interactive mode (default)',
+      '--dump, -d        - Dump entire message corpus out.',
       '',
       'If no options are provided, Iris will enter interactive mode.',
       box_character: '')
@@ -645,6 +650,13 @@ class CLI
           box_thickness: 0)
       exit(0)
     end
+
+    if (args & %w{-d --dump}).any?
+      Corpus.load
+      puts Corpus.to_json
+      exit(0)
+    end
+
     Display.say "Unrecognized option(s) #{args.join(', ')}"
     Display.say "Try -h for help"
   end
