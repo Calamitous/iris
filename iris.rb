@@ -10,11 +10,13 @@
 # Tech debt:
 # TODO: Refactor
 # TODO: Flesh out tests
+# TODO: Add integration tests
 # TODO: Split helptext into separate file?
 # TODO: Make all output WIDTH-aware
 # TODO: Create struct to firm up message payload
 # TODO: Let Message initialization accept params as a hash
 # TODO: Add checking for message file format version
+# TODO: Check file ownership of message file
 #
 # Features:
 # TODO: Add full message corpus dump for backup/debugging
@@ -25,6 +27,8 @@
 # TODO: Message editing
 # TODO: Add startup enviro health check
 # TODO: Add message editing
+# TODO: JSON API mode
+# TODO: Check message file size before loading, to prevent giant files from bombing the system.
 #
 # Fancify interface:
 # TODO: Add (read/unread) counts to topic line
