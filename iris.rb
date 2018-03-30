@@ -19,6 +19,7 @@
 # TODO: Check file ownership of message file
 #
 # Features:
+# TODO: Change listing to show last updated timestamp, instead of thread creation timestamp
 # TODO: Add full message corpus dump for backup/debugging
 # TODO: Gracefully handle bad message files
 # TODO: Add read-only mode if user doesn't want/can't have message file
@@ -40,6 +41,8 @@
 # TODO: Add optional title for topics
 # TODO: Add message when no topics are found
 # TODO: Add message troubleshooting tool, for deep data dive
+# TODO: Add color
+# TODO: Add option to skip color
 #
 # Later/Maybe:
 # * ncurses client
