@@ -330,7 +330,7 @@ class Message
 
   def save!
     new_corpus = Corpus.mine << self
-    IrisFile.write_corpus(new_corpus.to_json)
+    IrisFile.write_corpus(JSON.pretty_generate(new_corpus))
     Corpus.load
   end
 
