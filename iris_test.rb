@@ -304,3 +304,33 @@ describe Startupper do
     end
   end
 end
+
+describe 'colorizing' do
+  let(:color_string) {
+    "
+    RED     {r normal}\t{ri intense}\t{ru underline}\t{riu intense underline}
+            {rv reverse}\t{riv intense}\t{ruv underline}\t{riuv intense underline}
+    GREEN   {g normal}\t{gi intense}\t{ug underline}\t{uig intense underline}
+            {gv reverse}\t{giv intense}\t{ugv underline}\t{uigv intense underline}
+    YELLOW  {y normal}\t{yi intense}\t{yu underline}\t{yiu intense underline}
+            {yv reverse}\t{yiv intense}\t{yuv underline}\t{yiuv intense underline}
+    BLUE    {b normal}\t{bi intense}\t{bu underline}\t{biu intense underline}
+            {bv reverse}\t{biv intense}\t{buv underline}\t{biuv intense underline}
+    MAGENTA {m normal}\t{mi intense}\t{mu underline}\t{miu intense underline}
+            {mv reverse}\t{miv intense}\t{muv underline}\t{miuv intense underline}
+    CYAN    {c normal}\t{ci intense}\t{cu underline}\t{ciu intense underline}
+            {cv reverse}\t{civ intense}\t{cuv underline}\t{ciuv intense underline}
+    WHITE   {w normal}\t{wi intense}\t{wu underline}\t{wiu intense underline}
+            {wv reverse}\t{wiv intense}\t{wuv underline}\t{wiuv intense underline}
+  "
+  }
+
+  it 'produces the expected output' do
+    # color_string.split("\n")[1].colorize.must_equal "\n     RED     \e[31mnormal\e[0m\t\e[1;31mintense\e[0m\t\e[31;4munderline\e[0m\t\e[1;31;4mintense underline\e[0m\n             \e[31;7mreverse\e[0m\t\e[1;31;7mintense\e[0m\t\e[31;4;7munderline\e[0m\t\e[1;31;4;7mintense underline\e[0m\n     GREEN   \e[32mnormal\e[0m\t\e[1;32mintense\e[0m\t\e[32;4munderline\e[0m\t\e[1;32;4mintense underline\e[0m\n             \e[32;7mreverse\e[0m\t\e[1;32;7mintense\e[0m\t\e[32;4;7munderline\e[0m\t\e[1;32;4;7mintense underline\e[0m\n     YELLOW  \e[33mnormal\e[0m\t\e[1;33mintense\e[0m\t\e[33;4munderline\e[0m\t\e[1;33;4mintense underline\e[0m\n             \e[33;7mreverse\e[0m\t\e[1;33;7mintense\e[0m\t\e[33;4;7munderline\e[0m\t\e[1;33;4;7mintense underline\e[0m\n     BLUE    \e[34mnormal\e[0m\t\e[1;34mintense\e[0m\t\e[34;4munderline\e[0m\t\e[1;34;4mintense underline\e[0m\n             \e[34;7mreverse\e[0m\t\e[1;34;7mintense\e[0m\t\e[34;4;7munderline\e[0m\t\e[1;34;4;7mintense underline\e[0m\n     MAGENTA \e[35mnormal\e[0m\t\e[1;35mintense\e[0m\t\e[35;4munderline\e[0m\t\e[1;35;4mintense underline\e[0m\n             \e[35;7mreverse\e[0m\t\e[1;35;7mintense\e[0m\t\e[35;4;7munderline\e[0m\t\e[1;35;4;7mintense underline\e[0m\n     CYAN    \e[36mnormal\e[0m\t\e[1;36mintense\e[0m\t\e[36;4munderline\e[0m\t\e[1;36;4mintense underline\e[0m\n             \e[36;7mreverse\e[0m\t\e[1;36;7mintense\e[0m\t\e[36;4;7munderline\e[0m\t\e[1;36;4;7mintense underline\e[0m\n     WHITE   \e[37mnormal\e[0m\t\e[1;37mintense\e[0m\t\e[37;4munderline\e[0m\t\e[1;37;4mintense underline\e[0m\n             \e[37;7mreverse\e[0m\t\e[1;37;7mintense\e[0m\t\e[37;4;7munderline\e[0m\t\e[1;37;4;7mintense underline\e[0m\n  \e[0m"
+    color_string.split("\n")[1].colorize.must_equal "    RED     \e[31mnormal\e[0m\t\e[1;31mintense\e[0m\t\e[31;4munderline\e[0m\t\e[1;31;4mintense underline\e[0m\e[0m"
+  end
+
+  it 'returns an empty string when provided an empty string' do
+    ''.colorize.must_equal ''
+  end
+end

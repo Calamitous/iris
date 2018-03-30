@@ -57,6 +57,39 @@ require 'readline'
 # require 'pry' # Only needed for debugging
 
 class String
+  COLOR_MAP = {
+    'n' => '0',
+    'i' => '1',
+    'u' => '4',
+    'v' => '7',
+    'r' => '31',
+    'g' => '32',
+    'y' => '33',
+    'b' => '34',
+    'm' => '35',
+    'c' => '36',
+    'w' => '37',
+  }
+
+  COLOR_RESET = "\033[0m"
+
+  def color_token
+    return COLOR_RESET if self == '}'
+
+    tag = self.scan(/\w/).map{ |t| COLOR_MAP[t] }.sort.join(';')
+    "\033[#{tag}m"
+  end
+
+  def colorize
+    r = /{[rgybmcwniuv]+\s|}/
+    split = self.split(r, 2)
+
+    return self if r.match(self).nil?
+    newstr = split.first + $&.color_token + split.last
+    return (newstr + COLOR_RESET) if r.match(newstr).nil?
+
+    newstr.colorize
+  end
   def wrapped(width = Display::WIDTH)
     self.gsub(/.{1,#{width}}(?:\s|\Z|\-)/){($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")}
   end
@@ -391,7 +424,8 @@ class Display
   end
 
   def self.say(stuff = '')
-    puts stuff
+    stuff = stuff.join("\n") if stuff.is_a? Array
+    puts stuff.colorize
   end
 
   def self.topic_index_width
@@ -718,3 +752,4 @@ class Startupper
 end
 
 Startupper.new(ARGV) if __FILE__==$0
+
