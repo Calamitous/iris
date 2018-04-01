@@ -49,6 +49,7 @@ jimmy_foo@ctrl-c.club>
  * [[r]eply](#reply)
  * [[f]reshen](#freshen)
  * [reset OR clear](#reset-or-clear)
+ * [[i]nfo](#info)
  * [[h]elp](#help)
 
 #### [t]opics
@@ -159,6 +160,18 @@ This command reloads all users' message files to get any new messages that might
 `reset, clear - Fix screen in case of text corruption`
 
 This clears the screen and resets the cursor. If you experience screen corruption due to wide characters or terminal resizing, this may fix your visual issues.
+
+#### [i]nfo
+`info, i      - Display Iris version and message stats`
+
+```
+jennie_minnie@ctrl-c.club~> info
+
+Iris 1.0.5
+13 topics, 0 unread.
+50 messages, 0 unread.
+10 authors.
+```
 
 #### [h]elp
 `help, h, ?   - Display this text`

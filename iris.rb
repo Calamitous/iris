@@ -416,7 +416,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply}
+  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply info}
   CMD_MAP = {
     't'       => 'topics',
     'topics'  => 'topics',
@@ -433,6 +433,8 @@ class Interface
     'f'       => 'freshen',
     'reset'   => 'reset_display',
     'clear'   => 'reset_display',
+    'i'       => 'info',
+    'info  '  => 'info',
   }
 
   def browsing_handler(line)
@@ -449,6 +451,21 @@ class Interface
 
   def reset_display
     Display.say `tput reset`.chomp
+  end
+
+  def self.info
+    Display.flowerbox(
+      "Iris #{Config::VERSION}",
+      "#{Corpus.topics.size} #{'topic'.pluralize(Corpus.topics.size)}, #{Corpus.unread_topics.size} unread.",
+      "#{Corpus.size} #{'message'.pluralize(Corpus.size)}, #{Corpus.unread_messages.size} unread.",
+      "#{Corpus.all.map(&:author).uniq.size} authors.",
+        box_thickness: 0)
+  end
+
+  def info
+    Display.say
+    Interface.info
+    Display.say
   end
 
   def reply(topic_id = nil)
@@ -583,10 +600,11 @@ class Interface
       'help, h, ?   - Display this text',
       'topics, t    - List all topics',
       '# (topic id) - Read specified topic',
-      'compose, c    - Add a new topic',
+      'compose, c   - Add a new topic',
       'reply #, r # - Reply to a specific topic',
       'freshen, f   - Reload to get any new messages',
       'reset, clear - Fix screen in case of text corruption',
+      'info, i      - Display Iris version and message stats',
       box_character: '')
   end
 
@@ -627,7 +645,7 @@ class CLI
       '========',
       '--help, -h        - Display this text.',
       '--version, -v     - Display the current version of Iris.',
-      '--stats, -s       - Display data about the system.',
+      '--stats, -s       - Display Iris version and message stats.',
       '--interactive, -i - Enter interactive mode (default)',
       '--dump, -d        - Dump entire message corpus out.',
       '',
@@ -648,12 +666,7 @@ class CLI
 
     if (args & %w{-s --stats}).any?
       Corpus.load
-      Display.flowerbox(
-        "Iris #{Config::VERSION}",
-        "#{Corpus.topics.size} #{'topic'.pluralize(Corpus.topics.size)}, #{Corpus.unread_topics.size} unread.",
-        "#{Corpus.size} #{'message'.pluralize(Corpus.size)}, #{Corpus.unread_messages.size} unread.",
-        "#{Corpus.all.map(&:author).uniq.size} authors.",
-          box_thickness: 0)
+      Interface.info
       exit(0)
     end
 
