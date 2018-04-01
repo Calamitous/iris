@@ -306,9 +306,10 @@ class Message
   end
 
   def truncated_message(length)
-    stub = message.split("\n").first.decolorize
-    return stub if stub.length <= length
-    stub.slice(0, length - 6) + '...'
+    stub = message.split("\n").first
+    return stub.colorize if stub.decolorize.length <= length
+    # colorize the stub, then decolorize to strip out any partial tags
+    stub.colorize.slice(0, length - 6).decolorize + '...'
   end
 
   def latest_topic_timestamp
