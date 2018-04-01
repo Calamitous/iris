@@ -25,22 +25,34 @@ class String
   COLOR_RESET = "\033[0m"
 
   def color_token
-    return COLOR_RESET if self == '}'
+    if self !~ /\w/
+      return { '\{' => '|KOPEN|', '\}' => '|KCLOSE|', '}' => COLOR_RESET}[self]
+    end
 
     tag = self.scan(/\w/).map{ |t| COLOR_MAP[t] }.sort.join(';')
     "\033[#{tag}m"
   end
 
   def colorize
-    r = /{[rgybmcwniuv]+\s|}/
+    r = /\\{|{[rgybmcwniuv]+\s|\\}|}/
     split = self.split(r, 2)
 
     return self if r.match(self).nil?
     newstr = split.first + $&.color_token + split.last
-    return (newstr + COLOR_RESET) if r.match(newstr).nil?
+    return (newstr + COLOR_RESET).gsub(/\|KOPEN\|/, '{').gsub(/\|KCLOSE\|/, '}') if r.match(newstr).nil?
 
     newstr.colorize
   end
+
+  def decolorize
+    self.
+      gsub(/\\{/, '|KOPEN|').
+      gsub(/\\}/, '|KCLOSE|').
+      gsub(/{[rgybmcwniuv]+\s|}/, '').
+      gsub(/\|KOPEN\|/, '{').
+      gsub(/\|KCLOSE\|/, '}')
+  end
+
   def wrapped(width = Display::WIDTH)
     self.gsub(/.{1,#{width}}(?:\s|\Z|\-)/){($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")}
   end
@@ -294,7 +306,7 @@ class Message
   end
 
   def truncated_message(length)
-    stub = message.split("\n").first
+    stub = message.split("\n").first.decolorize
     return stub if stub.length <= length
     stub.slice(0, length - 6) + '...'
   end
@@ -314,8 +326,8 @@ class Message
     error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
     error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
 
-    bar = indent_text + ('-' * (Display::WIDTH - indent_text.length))
-    message_text = message.wrapped(Display::WIDTH - (indent_text.length + 1)).split("\n").map{|m| indent_text + m }.join("\n")
+    bar = indent_text + ('-' * (Display::WIDTH - indent_text.decolorize.length))
+    message_text = message.wrapped(Display::WIDTH - (indent_text.decolorize.length + 1)).split("\n").map{|m| indent_text + m }.join("\n")
     [
       '',
       "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",

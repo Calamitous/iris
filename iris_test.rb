@@ -305,7 +305,7 @@ describe Startupper do
   end
 end
 
-describe 'colorizing' do
+describe 'String#colorize' do
   let(:color_string) {
     "
     RED     {r normal}\t{ri intense}\t{ru underline}\t{riu intense underline}
@@ -332,5 +332,17 @@ describe 'colorizing' do
 
   it 'returns an empty string when provided an empty string' do
     ''.colorize.must_equal ''
+  end
+
+  it 'allows curly brackets to be escaped' do
+    'I want \{no color\}'.colorize.must_equal "I want {no color}\e[0m"
+  end
+end
+
+describe 'String#decolorize' do
+  it 'returns the string with the coloring tags stripped'
+
+  it 'allows curly brackets to be escaped' do
+    'I want \{no color\}'.decolorize.must_equal "I want {no color}"
   end
 end
