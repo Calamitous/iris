@@ -59,3 +59,5 @@
 * Add full message corpus dump for backup/debugging
 * Add startup enviro health check
 * Change listing to show last updated timestamp, instead of thread creation timestamp
+* Add command-line options to README
+* Add documentation for color feature

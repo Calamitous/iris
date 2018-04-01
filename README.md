@@ -10,11 +10,12 @@ Iris is strictly text-based, requiring no GUI or web servers.
  * [Installation](#installation)
  * [Usage](#usage)
  * [Commands](#commands)
+ * [Text Features/Markup](#text-features-markup)
  * [Philosophy](#philosophy)
  * [Technical Bits](#technical-bits)
  * [License](#license)
 
-### Installation
+## Installation
 
 At its core, Iris is simply a single, executable Ruby script.  It has been tested and is known to work with Ruby 2.3.5.  No extra gems or libraries are required.
 
@@ -25,11 +26,11 @@ chmod 755 ./iris.rb
 mv ./iris.rb /usr/local/bin/iris
 ```
 
-### Usage
+## Usage
 
 Iris has a readline interface that can be used to navigate the message corpus.
 
-#### Readline Interface Example
+### Readline Interface Example
 ```
 %> iris
 Welcome to Iris v. 1.0.0.  Type "help" for a list of commands.
@@ -41,7 +42,7 @@ jimmy_foo@ctrl-c.club> topics
 jimmy_foo@ctrl-c.club>
 ```
 
-### Commands
+## Commands
 
  * [[t]opics](#topics)
  * [Display topic](#display-topic)
@@ -52,7 +53,9 @@ jimmy_foo@ctrl-c.club>
  * [[i]nfo](#info)
  * [[h]elp](#help)
 
-#### [t]opics
+---
+
+### [t]opics
 `topics, t    - List all topics`
 
 This outputs a list of top-level topics that have been composed by everyone on the server.
@@ -70,7 +73,9 @@ jimmy_foo@ctrl-c.club> topics
 1. The third column is the author.  This is the user who composed the topic.
 1. The fourth column is the title.  This is the truncated first line of the topic.
 
-#### Display topic
+---
+
+### Display topic
 `# (topic id) - Read specified topic`
 
 Type in the index of the topic you wish to read.  This will display the topic and all its replies.
@@ -94,7 +99,9 @@ It's good to see everyone here!
 
 ```
 
-#### [c]ompose
+---
+
+### [c]ompose
 `compose, c    - Add a new topic`
 
 This allows you to add a new top-level topic to the board.  The first line of your new topic will be used as the topic title.
@@ -120,7 +127,9 @@ jimmy_foo@ctrl-c.club~> topics
  | 3 | 2018-01-23T00:13:44Z | jimmy_foo@ctrl-c.club   | How do I spoo the fleem?
 ```
 
-#### [r]eply
+---
+
+### [r]eply
 `reply #, r # - Reply to a specific topic`
 
 Replies are responses to a specific topic -- they only appear when displaying the topic.
@@ -151,17 +160,23 @@ It's not in the docs and my boss is asking.  Any help is appreciated!
   | ---------------------------------------------------------------------------------
 ```
 
-#### [f]reshen
+---
+
+### [f]reshen
 `freshen, f   - Reload to get any new messages`
 
 This command reloads all users' message files to get any new messages that might have come in since you started the program.
 
-#### reset OR clear
+---
+
+### reset OR clear
 `reset, clear - Fix screen in case of text corruption`
 
 This clears the screen and resets the cursor. If you experience screen corruption due to wide characters or terminal resizing, this may fix your visual issues.
 
-#### [i]nfo
+---
+
+### [i]nfo
 `info, i      - Display Iris version and message stats`
 
 ```
@@ -173,12 +188,116 @@ Iris 1.0.5
 10 authors.
 ```
 
-#### [h]elp
+---
+
+### [h]elp
 `help, h, ?   - Display this text`
 
 This displays helpful reminders of the commands that Iris supports.
 
-### Philosophy
+## Text Features/Markup
+
+### Color
+
+Iris supports 7 colors and 4 text features.
+
+#### Colors
+
+| Marker | Color   |
+|:------:|:--------|
+| r      | Red     |
+| g      | Green   |
+| y      | Yellow  |
+| b      | Blue    |
+| m      | Magenta |
+| c      | Cyan    |
+| w      | White   |
+
+#### Text Features
+
+| Marker | Feature    |
+|:------:|:-----------|
+| n      | Normal     |
+| i      | Intense    |
+| u      | Underlined |
+| v      | Reversed   |
+
+#### Markup
+
+Colors and Text Features are applied by a simple markup.  Surround the text you want colored with an opening curly brace (`{`), add some number of text modification markers (`riu`, for example),  and `}`), and close with a closing curly brace (`}`).
+
+For example, if you have the text:
+
+```
+The blue fox and the yellow dog
+```
+
+...and you wanted to color it appropriately, you would wrap the text "blue fox" and "yellow dog" like so:
+
+```
+The {b blue fox} and the {y yellow dog}
+```
+
+The result, in your final message, would look like:
+
+![blue_fox_and_yellow_dog.png](docs/images/blue_fox_and_yellow_dog.png)
+
+---
+
+Text features can be added as well:
+
+```
+The {b blue fox} {u will} jump over the {y yellow dog}
+```
+
+![blue_fox_jumping.png](docs/images/blue_fox_jumping.png)
+
+---
+
+A color can be combined with multiple text features:
+
+```
+The {b blue fox} {riuv will} jump over the {y yellow dog}
+```
+
+![blue_fox_really_jumping.png](docs/images/blue_fox_really_jumping.png)
+
+---
+
+Marker order does not matter.  These two statements are equivalent:
+
+```
+The {bv blue fox} {riuv will} jump over the {yi yellow dog}
+The {vb blue fox} {uirv will} jump over the {iy yellow dog}
+```
+
+---
+
+If you want to type a curly brace, preface it with a backslash (`\`):
+
+```
+No colors for me, please.  I just want to \{ write: code \}
+```
+
+...yields:
+
+```
+No colors for me, please.  I just want to { write: code }
+```
+
+---
+
+#### Color and Text Feature Sample
+
+![color_and_text_feature_sample.png](docs/images/color_and_text_feature_sample.png)
+
+---
+
+#### Caveats
+
+Color and text feature markup cannot be nested.  It won't break anything, but it will probably not look like you are expecting.
+
+## Philosophy
 
 Iris must:
   * Be a single file
@@ -204,7 +323,7 @@ Iris must:
     * Message files should be owned and only editable by their author.
     * Iris should warn the user if this is not the case.
 
-### Technical Bits
+## Technical Bits
 
   * [Conventions](#conventions)
   * [Message Files](#message-files)
@@ -216,11 +335,11 @@ Iris must:
   * [Topic List](#topic-list)
   * [Replies](#replies)
 
-#### Conventions
+### Conventions
 
 Iris leans heavily on convention.  Iris' security and message authentication is provided by filesystem permissions and message hashing.
 
-#### Message Files
+### Message Files
 
 Each user has their own message file.  This is a JSON file containing all the messages that the user has authored.  It is named `.iris.messages` and is located in the user's home directory.
 
@@ -237,15 +356,15 @@ In order to operate correctly and safely, this file _must_ be:
 -rw-r--r-- 1 jimmy_foo jimmy_foo /home/jimmy_foo/.iris.messages
 ```
 
-#### Messages
-##### Message Hash
-###### Bad Hashes
-##### Edit Chain
-##### Deleted Messages
+### Messages
+#### Message Hash
+##### Bad Hashes
+#### Edit Chain
+#### Deleted Messages
 
-#### Topic List
+### Topic List
 
-####Replies
+###Replies
 
-### License
+## License
 GPLv2
