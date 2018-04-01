@@ -39,7 +39,10 @@ class String
 
     return self if r.match(self).nil?
     newstr = split.first + $&.color_token + split.last
-    return (newstr + COLOR_RESET).gsub(/\|KOPEN\|/, '{').gsub(/\|KCLOSE\|/, '}') if r.match(newstr).nil?
+
+    if r.match(newstr).nil?
+      return (newstr + COLOR_RESET).gsub(/\|KOPEN\|/, '{').gsub(/\|KCLOSE\|/, '}')
+    end
 
     newstr.colorize
   end
@@ -54,12 +57,13 @@ class String
   end
 
   def wrapped(width = Display::WIDTH)
-    self.gsub(/.{1,#{width}}(?:\s|\Z|\-)/){($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")}
+    self.gsub(/.{1,#{width}}(?:\s|\Z|\-)/) {
+      ($& + 5.chr).gsub(/\n\005/,"\n").gsub(/\005/,"\n")
+    }
   end
 
   def pluralize(count)
-    return self if count == 1
-    self + 's'
+    count == 1 ? self : self + 's'
   end
 end
 
@@ -84,7 +88,7 @@ class Corpus
     @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
     @@topics    = @@corpus.select{ |m| m.parent == nil }
     @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
-    @@my_reads = IrisFile.load_reads
+    @@my_reads  = IrisFile.load_reads
     @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
     @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
       agg[msg.parent] ||= []

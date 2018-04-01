@@ -24,6 +24,7 @@
 # Features:
 * Message deletion
 * Message editing
+  * Allow shelling out to editor for message editing?
 * Gracefully handle bad message files
 * Add read-only mode if user doesn't want/can't have message file
 * Add user muting (~/.iris.muted)
