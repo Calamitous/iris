@@ -68,7 +68,7 @@ class String
 end
 
 class Config
-  VERSION      = '1.0.4'
+  VERSION      = '1.0.5'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   READ_FILE    = "#{ENV['HOME']}/.iris.read"
