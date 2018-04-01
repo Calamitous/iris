@@ -4,14 +4,12 @@
 ## Editing/Deleting: In Progress
 ## Documentation: In Progress
 
-* Add command-line options to README
-* Flesh out technical sections
-
 # Bugs:
 * Fix topic selection when replying without topic ID
 * Is `Time.now.utc.iso8601` working as expected?
 
 # Tech debt:
+* Flesh out technical sections
 * Flesh out tests
 * Add integration tests
 * Create Struct to firm up message payload
@@ -61,3 +59,5 @@
 * Change listing to show last updated timestamp, instead of thread creation timestamp
 * Add command-line options to README
 * Add documentation for color feature
+* Add command-line options to README
+

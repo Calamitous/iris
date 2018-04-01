@@ -10,7 +10,8 @@ Iris is strictly text-based, requiring no GUI or web servers.
  * [Installation](#installation)
  * [Usage](#usage)
  * [Commands](#commands)
- * [Text Features/Markup](#text-features-markup)
+ * [Command-line Options](#command-line-options)
+ * [Text Features/Markup](#text-featuresmarkup)
  * [Philosophy](#philosophy)
  * [Technical Bits](#technical-bits)
  * [License](#license)
@@ -33,7 +34,7 @@ Iris has a readline interface that can be used to navigate the message corpus.
 ### Readline Interface Example
 ```
 %> iris
-Welcome to Iris v. 1.0.0.  Type "help" for a list of commands.
+Welcome to Iris v. 1.0.5.  Type "help" for a list of commands.
 jimmy_foo@ctrl-c.club> topics
 
  | 1 | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
@@ -179,6 +180,8 @@ This clears the screen and resets the cursor. If you experience screen corruptio
 ### [i]nfo
 `info, i      - Display Iris version and message stats`
 
+This outputs the current version of Iris, along with messsage, topic, and author counts.
+
 ```
 jennie_minnie@ctrl-c.club~> info
 
@@ -194,6 +197,69 @@ Iris 1.0.5
 `help, h, ?   - Display this text`
 
 This displays helpful reminders of the commands that Iris supports.
+
+## Command-line Options
+
+There are a few options you can pass in from the command-line:
+
+ * [--version, -v](#--version-v)
+ * [--stats, -s](#--stats-s)
+ * [--interactive, -i](#--interactive-i)
+ * [--dump, -d](#--dump-d)
+ * [--help, -h](#--help-h)
+
+### --version/-v
+
+This displays the current version of Iris and exits.
+
+```
+iris --version
+```
+
+```
+Iris 1.0.5
+```
+
+---
+
+### --stats/-s
+
+This outputs the current version of Iris, along with messsage, topic, and author counts.
+
+This command does not enter Iris' interactive mode.
+
+```
+iris --stats
+```
+
+```
+Iris 1.0.5
+13 topics, 0 unread.
+50 messages, 0 unread.
+10 authors.
+```
+
+---
+
+### --interactive/-i
+
+This command enters Iris' interactive mode, the default mode with which users can compose and read topics and replies.
+
+This is the mode that Iris enters if no options are passed on the command-line.
+
+---
+
+### --dump/-d
+
+This reads the entire message corpus and outputs it as a stream of JSON data, suitable for piping into a backup file, `jq` parser, or similar.
+
+This command does not enter Iris' interactive mode.
+
+---
+
+### --help/-h
+
+This command displays a complete list of options that Iris recognizes.
 
 ## Text Features/Markup
 
