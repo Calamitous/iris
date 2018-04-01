@@ -7,6 +7,10 @@
 * Add command-line options to README
 * Flesh out technical sections
 
+# Bugs:
+* Fix topic selection when replying without topic ID
+* Is `Time.now.utc.iso8601` working as expected?
+
 # Tech debt:
 * Flesh out tests
 * Add integration tests
