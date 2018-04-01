@@ -18,7 +18,6 @@
 * Split helptext into separate file?
 
 # Features:
-* Change listing to show last updated timestamp, instead of thread creation timestamp
 * Message deletion
 * Message editing
 * Gracefully handle bad message files
@@ -54,3 +53,4 @@
 * Add color
 * Add full message corpus dump for backup/debugging
 * Add startup enviro health check
+* Change listing to show last updated timestamp, instead of thread creation timestamp

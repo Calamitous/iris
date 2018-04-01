@@ -299,11 +299,15 @@ class Message
     stub.slice(0, length - 6) + '...'
   end
 
+  def latest_topic_timestamp
+    (replies.map(&:timestamp).max || timestamp).gsub(/T/, ' ').gsub(/Z/, '')
+  end
+
   def to_topic_line(index)
-    error_marker = valid? ? ' ' : 'X'
-    head = [error_marker, Display.print_index(index), timestamp, Display.print_author(author)].join(' | ')
-    message_stub = truncated_message(Display::WIDTH - head.length)
-    [head, message_stub].join(' | ')
+    error_marker = valid? ? '|' : 'X'
+    head = [Display.print_index(index), latest_topic_timestamp, Display.print_author(author)].join(' | ')
+    message_stub = truncated_message(Display::WIDTH - head.decolorize.length - 1)
+    error_marker + ' ' + [head, message_stub].join(' | ')
   end
 
   def to_display

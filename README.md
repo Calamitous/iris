@@ -65,7 +65,7 @@ jimmy_foo@ctrl-c.club> topics
 ```
 
 1. The first column is the topic index.  This is the reference number to use when displaying or replying to a topic.
-1. The second column is the timestamp.  This is the server-local time when the topic was composed.
+1. The second column is the timestamp.  This is the server-local time when the topic was composed or last replied to.
 1. The third column is the author.  This is the user who composed the topic.
 1. The fourth column is the title.  This is the truncated first line of the topic.
 
