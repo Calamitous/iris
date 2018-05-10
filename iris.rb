@@ -472,14 +472,13 @@ class Interface
     Display.say
   end
 
-  def reply(topic_id = nil)
-    topic_id ||= @reply_topic
+  def reply(topic_id = @reply_topic)
     unless topic_id
       Display.say "I can't reply to nothing! Include a topic ID or view a topic to reply to."
       return
     end
 
-    if parent = Corpus.find_topic_by_id(topic_id)
+    if parent = (Corpus.find_topic_by_id(topic_id) || Corpus.find_topic_by_hash(topic_id))
       @reply_topic = parent.hash
     else
       Display.say "Could not reply; unable to find a topic with ID '#{topic_id}'"
