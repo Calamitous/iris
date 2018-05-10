@@ -611,6 +611,9 @@ class Interface
       'freshen, f   - Reload to get any new messages',
       'reset, clear - Fix screen in case of text corruption',
       'info, i      - Display Iris version and message stats',
+      '',
+      'Full documentation available here:',
+      'https://github.com/Calamitous/iris/blob/master/README.md',
       box_character: '')
   end
 
