@@ -7,6 +7,22 @@ require 'etc'
 require 'readline'
 # require 'pry' # Only needed for debugging
 
+class Config
+  VERSION      = '1.0.5'
+  MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
+  HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
+  READ_FILE    = "#{ENV['HOME']}/.iris.read"
+  IRIS_SCRIPT  = __FILE__
+
+  USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
+  HOSTNAME     = `hostname -d`.chomp
+  AUTHOR       = "#{USER}@#{HOSTNAME}"
+
+  def self.find_files
+    (`ls /home/**/.iris.messages`).split("\n")
+  end
+end
+
 class String
   COLOR_MAP = {
     'n' => '0',
@@ -64,22 +80,6 @@ class String
 
   def pluralize(count)
     count == 1 ? self : self + 's'
-  end
-end
-
-class Config
-  VERSION      = '1.0.5'
-  MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
-  HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
-  READ_FILE    = "#{ENV['HOME']}/.iris.read"
-  IRIS_SCRIPT  = __FILE__
-
-  USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
-  HOSTNAME     = `hostname -d`.chomp
-  AUTHOR       = "#{USER}@#{HOSTNAME}"
-
-  def self.find_files
-    (`ls /home/**/.iris.messages`).split("\n")
   end
 end
 
