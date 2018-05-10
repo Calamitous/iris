@@ -576,6 +576,8 @@ class Interface
     @mode = :browsing
 
     Display.say "Welcome to Iris v#{Config::VERSION}.  Type 'help' for a list of commands; Ctrl-D or 'quit' to leave."
+    topics
+
     while line = readline(prompt) do
       handle(line)
     end
