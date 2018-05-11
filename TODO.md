@@ -13,7 +13,7 @@
 * ~Automatically display topics when opening~
 * Add column headers for topics
 * Mark unread topics/topics with unread replies in topics list
-* Move display headers into frame line
+* ~Move display headers into frame line~
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?

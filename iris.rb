@@ -373,17 +373,22 @@ class Message
 
   def to_display
     error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
-    error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR TAMPERED WITH ###'
+    error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR MAY HAVE BEEN TAMPERED WITH ###'
+
+    message_header = "#{leader_text} On #{timestamp}, #{author} #{verb_text}..."
+
+    header_bar = (indent_text + message_header + ('-' * (Display::WIDTH)))
+    header_offset = header_bar.length - header_bar.decolorize.length
+    header_bar = header_bar[0..Display::WIDTH+header_offset-1]
 
     bar = indent_text + ('-' * (Display::WIDTH - indent_text.decolorize.length))
     message_text = message.wrapped(Display::WIDTH - (indent_text.decolorize.length + 1)).split("\n").map{|m| indent_text + m }.join("\n")
     [
       '',
-      "#{leader_text} On #{timestamp}, #{author} #{verb_text}...",
       error_marker,
       errors,
       error_follower,
-      bar,
+      header_bar,
       message_text,
       bar
     ].flatten.compact.join("\n")
@@ -421,7 +426,7 @@ class Message
   end
 
   def leader_text
-    topic? ? "*** [#{topic_id}]" : ["    ===", "[#{id}]", edited_flag].compact.join(' ')
+    topic? ? "{g ***} [#{topic_id}]" : ["{g ===}", "[#{id}]", edited_flag].compact.join(' ')
   end
 
   def verb_text
