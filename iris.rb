@@ -361,7 +361,7 @@ class Message
   end
 
   def latest_topic_timestamp
-    (replies.map(&:timestamp).max || timestamp).gsub(/T/, ' ').gsub(/Z/, '')
+    (replies.map(&:timestamp).max || timestamp || 'UNKNOWN').gsub(/T/, ' ').gsub(/Z/, '')
   end
 
   def to_topic_line(index)

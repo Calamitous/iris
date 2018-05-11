@@ -8,7 +8,7 @@
 * Message deletion
 * ~Message editing~
   * Allow shelling out to editor for message editing?
-* Gracefully handle bad message files
+* ~Gracefully handle bad message files~
 * ~Fix topic selection when replying without topic ID~
 * ~Automatically display topics when opening~
 * Add column headers for topics
