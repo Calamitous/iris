@@ -105,12 +105,32 @@ class Corpus
     @@corpus
   end
 
+  def self.displayable
+    @@corpus.select { |message| message.show_me? }
+  end
+
   def self.topics
     @@topics
   end
 
   def self.mine
     @@my_corpus
+  end
+
+  def self.is_mine?(message)
+    @@my_corpus.map(&:hash).include? message.hash
+  end
+
+  def self.is_topic?(message)
+    @@topics.map(&:hash).include? message.hash
+  end
+
+  def self.index_of(message)
+    @@corpus.map(&:hash).index message.hash
+  end
+
+  def self.topic_index_of(message)
+    @@topics.map(&:hash).index message.hash
   end
 
   def self.find_message_by_hash(hash)
@@ -120,17 +140,28 @@ class Corpus
     all[index]
   end
 
+  def self.find_message_by_edit_hash(hash)
+    return nil unless hash
+    Corpus.all.detect { |message| message.edit_hash == hash }
+  end
+
   def self.find_all_by_parent_hash(hash)
     return [] unless hash
     indexes = @@all_parent_hash_to_index[hash]
     return [] unless indexes
-    indexes.map{ |idx| all[idx] }
+    indexes.map{ |idx| displayable[idx] }.compact
   end
 
   def self.find_topic_by_id(topic_lookup)
     return nil unless topic_lookup
     index = topic_lookup.to_i - 1
     topics[index] if index >= 0 && index < topics.length
+  end
+
+  def self.find_message_by_id(message_lookup)
+    return nil unless message_lookup && message_lookup =~ /\AM\d+\Z/
+    index = message_lookup.gsub(/M/, '').to_i - 1
+    @@corpus[index] if index >= 0 && index < @@corpus.length
   end
 
   def self.find_topic_by_hash(topic_lookup)
@@ -251,11 +282,12 @@ class Message
 
   attr_reader :timestamp, :edit_hash, :author, :parent, :message, :errors
 
-  def initialize(message, parent = nil, author = Config::AUTHOR, timestamp = Time.now.utc.iso8601, edit_hash = nil)
+  def initialize(message, parent = nil, author = Config::AUTHOR, edit_hash = nil, timestamp = Time.now.utc.iso8601)
+    @message   = message
     @parent    = parent
     @author    = author
+    @edit_hash = edit_hash
     @timestamp = timestamp
-    @message   = message
     @hash      = hash
     @errors    = []
   end
@@ -264,9 +296,21 @@ class Message
     data = payload if payload.is_a?(Hash)
     data = JSON.parse(payload) if payload.is_a?(String)
 
-    loaded_message = self.new(data['data']['message'], data['data']['parent'], data['data']['author'], data['data']['timestamp'], data['edit_hash'])
+    loaded_message = self.new(data['data']['message'], data['data']['parent'], data['data']['author'], data['edit_hash'], data['data']['timestamp'])
     loaded_message.validate_hash(data['hash'])
     loaded_message
+  end
+
+  def self.edit(new_text, old_message)
+    Message.new(new_text, old_message.parent, old_message.author, old_message.hash).save!
+  end
+
+  def edited?
+    !(edit_hash.nil? || edit_hash.empty?)
+  end
+
+  def show_me?
+    !Corpus.find_message_by_edit_hash(hash)
   end
 
   def validate_user(username)
@@ -361,10 +405,23 @@ class Message
     Corpus.find_all_by_parent_hash(hash)
   end
 
+  def id
+    'M' + (Corpus.index_of(self) + 1).to_s
+  end
+
+  def topic_id
+    return nil unless Corpus.is_topic?(self)
+    Corpus.topic_index_of(self) + 1
+  end
+
   private
 
+  def edited_flag
+    '{y (edited) }' if edited?
+  end
+
   def leader_text
-    topic? ? '***' : '    === REPLY==='
+    topic? ? "*** [#{topic_id}]" : ["    ===", "[#{id}]", edited_flag].compact.join(' ')
   end
 
   def verb_text
@@ -420,7 +477,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply info}
+  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply edit info}
   CMD_MAP = {
     't'       => 'topics',
     'topics'  => 'topics',
@@ -431,6 +488,8 @@ class Interface
     'help'    => 'help',
     'r'       => 'reply',
     'reply'   => 'reply',
+    'e'       => 'edit',
+    'edit'    => 'edit',
     'q'       => 'quit',
     'quit'    => 'quit',
     'freshen' => 'freshen',
@@ -450,6 +509,7 @@ class Interface
     # We must have args, let's handle 'em
     arg = tokens.last
     return reply(arg) if cmd == 'reply'
+    return edit(arg)  if cmd == 'edit'
     Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
   end
 
@@ -470,6 +530,12 @@ class Interface
     Display.say
     Interface.info
     Display.say
+  end
+
+  def compose
+    @mode = :composing
+    @text_buffer = ''
+    Display.say 'Writing a new topic.  Type a period on a line by itself to end message.'
   end
 
   def reply(topic_id = @reply_topic)
@@ -493,6 +559,37 @@ class Interface
     Display.say 'Type a period on a line by itself to end message.'
   end
 
+  def edit(message_id = nil)
+    unless message_id
+      Display.say "I can't edit nothing! Include a message ID to edit."
+      return
+    end
+
+    message =
+      Corpus.find_message_by_hash(message_id) ||
+      Corpus.find_message_by_id(message_id) ||
+      Corpus.find_topic_by_id(message_id)
+
+    unless message
+      Display.say "Could not edit; unable to find a message with ID '#{message_id}'"
+      return
+    end
+
+    unless Corpus.is_mine?(message)
+      Display.say "Message with ID '#{message_id}' belongs to someone else."
+      Display.say "You can only edit your own messages!"
+      return
+    end
+
+    @mode = :editing
+    @old_message = message
+    @text_buffer = ''
+    title = message.truncated_message(Display::WIDTH - 26)
+    Display.say
+    Display.say "Editing message '#{title}'"
+    Display.say 'Type a period on a line by itself to end message.'
+  end
+
   def replying_handler(line)
     if line !~ /^\.$/
       if @text_buffer.empty?
@@ -508,6 +605,26 @@ class Interface
     else
       Message.new(@text_buffer, @reply_topic).save!
       Display.say 'Reply saved!'
+    end
+    @reply_topic = nil
+    @mode = :browsing
+  end
+
+  def editing_handler(line)
+    if line !~ /^\.$/
+      if @text_buffer.empty?
+        @text_buffer = line
+      else
+        @text_buffer = [@text_buffer, line].join("\n")
+      end
+      return
+    end
+
+    if @text_buffer.length <= 1
+      Display.say 'Empty message, not updating...'
+    else
+      Message.edit(@text_buffer, @old_message)
+      Display.say 'Message edited!'
     end
     @reply_topic = nil
     @mode = :browsing
@@ -536,6 +653,7 @@ class Interface
     return browsing_handler(line)  if @mode == :browsing
     return composing_handler(line) if @mode == :composing
     return replying_handler(line)  if @mode == :replying
+    return editing_handler(line)   if @mode == :editing
   end
 
   def show_topic(num)
@@ -564,8 +682,9 @@ class Interface
   end
 
   def prompt
-    return 'new~> ' if @mode == :composing
+    return 'new~> '   if @mode == :composing
     return 'reply~> ' if @mode == :replying
+    return 'edit~> '  if @mode == :editing
     "#{Config::AUTHOR}~> "
   end
 
@@ -580,12 +699,6 @@ class Interface
     while line = readline(prompt) do
       handle(line)
     end
-  end
-
-  def compose
-    @mode = :composing
-    @text_buffer = ''
-    Display.say 'Writing a new topic.  Type a period on a line by itself to end message.'
   end
 
   def topics

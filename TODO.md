@@ -6,7 +6,7 @@
 
 # For 1.0.6
 * Message deletion
-* Message editing
+* ~Message editing~
   * Allow shelling out to editor for message editing?
 * Gracefully handle bad message files
 * ~Fix topic selection when replying without topic ID~
