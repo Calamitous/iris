@@ -357,7 +357,7 @@ class Message
     stub = message.split("\n").first
     return stub.colorize if stub.decolorize.length <= length
     # colorize the stub, then decolorize to strip out any partial tags
-    stub.colorize.slice(0, length - 6).decolorize + '...'
+    stub.colorize.slice(0, length - 5 - Display.topic_index_width).decolorize + '...'
   end
 
   def latest_topic_timestamp

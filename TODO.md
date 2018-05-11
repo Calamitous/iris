@@ -14,6 +14,7 @@
 * Add column headers for topics
 * Mark unread topics/topics with unread replies in topics list
 * ~Move display headers into frame line~
+* ~Fix truncated message headers being one character too long in topic list~
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?
