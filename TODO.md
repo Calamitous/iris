@@ -16,8 +16,8 @@
 * ~Keep order of message on edit~
 * ~Mark unread topics/topics with unread replies in topics list~
 * ~Add column headers for topics~
+* ~Document new features~
 * Keep replies on edited topics
-* Document new features
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?

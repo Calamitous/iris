@@ -524,7 +524,7 @@ class Display
 
   def self.topic_header
     author_head = ('AUTHOR' + (' ' * WIDTH))[0..topic_author_width-1]
-    '| ' + ['ID', 'U', 'TIMESTAMP          ', author_head, 'MESSAGE'].join(' | ')
+    '| ' + ['ID', 'U', 'TIMESTAMP          ', author_head, 'TITLE'].join(' | ')
   end
 end
 

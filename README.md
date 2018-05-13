@@ -34,11 +34,11 @@ Iris has a readline interface that can be used to navigate the message corpus.
 ### Readline Interface Example
 ```
 %> iris
-Welcome to Iris v. 1.0.5.  Type "help" for a list of commands.
-jimmy_foo@ctrl-c.club> topics
+Welcome to Iris v. 1.0.6.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
 
- | 1 | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- | 2 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for improv...
+ | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
+ |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for imp...
 
 jimmy_foo@ctrl-c.club>
 ```
@@ -49,6 +49,8 @@ jimmy_foo@ctrl-c.club>
  * [Display topic](#display-topic)
  * [[c]ompose](#compose)
  * [[r]eply](#reply)
+ * [[e]dit](#edit)
+ * [[d]elete and un[d]elete](#delete)
  * [[f]reshen](#freshen)
  * [reset OR clear](#reset-or-clear)
  * [[i]nfo](#info)
@@ -64,15 +66,17 @@ This outputs a list of top-level topics that have been composed by everyone on t
 ```
 jimmy_foo@ctrl-c.club> topics
 
- | 1 | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- | 2 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for improv...
+ | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
+ |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
 
 ```
 
 1. The first column is the topic index.  This is the reference number to use when displaying or replying to a topic.
-1. The second column is the timestamp.  This is the server-local time when the topic was composed or last replied to.
-1. The third column is the author.  This is the user who composed the topic.
-1. The fourth column is the title.  This is the truncated first line of the topic.
+1. The second column is unread count.  This shows how many messages under this topic you haven't seen.
+1. The third column is the timestamp.  This is the server-local time when the topic was composed or last replied to.
+1. The fourth column is the author.  This is the user who composed the topic.
+1. The fifth column is the title.  This is the truncated first line of the topic.
 
 ---
 
@@ -83,20 +87,19 @@ Type in the index of the topic you wish to read.  This will display the topic an
 ```
 jimmy_foo@ctrl-c.club> topics
 
- | 1 | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- | 2 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for improv...
+ | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
+ |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
 
 jimmy_foo@ctrl-c.club> 1
-*** On 2018-01-24T05:49:53Z, jimmy_foo@ctrl-c.club posted...
----------------------------------------------------------------------------------
+*** [1] On 2018-01-24T05:49:53Z, jimmy_foo@ctrl-c.club posted...-----------------
 Welcome!
 It's good to see everyone here!
 ---------------------------------------------------------------------------------
 
-  === REPLY === On 2018-01-30T22:50:38Z, jerry_berry@ctrl-c.club replied...
-  | ---------------------------------------------------------------------------------
+  | === [M2] On 2018-01-30T22:50:38Z, jerry_berry@ctrl-c.club replied...---------
   | Thanks!
-  | ---------------------------------------------------------------------------------
+  | -----------------------------------------------------------------------------
 
 ```
 
@@ -123,9 +126,10 @@ Topic saved!
 
 jimmy_foo@ctrl-c.club~> topics
 
- | 1 | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- | 2 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for improv...
- | 3 | 2018-01-23T00:13:44Z | jimmy_foo@ctrl-c.club   | How do I spoo the fleem?
+ | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
+ |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
+ |  2 |   | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
+ |  3 | 1 | 2018-01-23T00:13:44Z | jimmy_foo@ctrl-c.club   | How do I spoo the...
 ```
 
 ---
@@ -141,7 +145,8 @@ If you post an empty message, the system will discard it.
 
 ```
 jennie_minnie@ctrl-c.club~> reply 3
-Writing a reply to topic 'How do I spoo the fleem?'.  Type a period on a line by itself to end message.
+Writing a reply to topic 'How do I spoo the fleem?'.
+Type a period on a line by itself to end message.
 
 reply~> Simple, you just boondoggle the flibbertigibbet.  That should be in the manual.
 reply~> .
@@ -149,16 +154,133 @@ Reply saved!
 
 jennie_minnie@ctrl-c.club~> 3
 
-*** On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...
----------------------------------------------------------------------------------
+*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
 
-  === REPLY === On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club replied...
-  | ---------------------------------------------------------------------------------
-  | Simple, you just boondoggle the flibbertigibbet.  That should be in the manual.
-  | ---------------------------------------------------------------------------------
+  | === [M5] On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club replied...-------
+  | Simple, you just boondoggle the flibbertigibbet.  That should be in the
+  | manual.
+  | -----------------------------------------------------------------------------
+```
+
+---
+
+### [e]dit
+`edit #, e # - Edit a topic or message`
+
+Editing a message or topic will replace the message you select with an all-new message.
+
+To select the message you wish to edit, use either the topic index or the message number.
+
+The message number will always start with the capital letter "M", message "M5" for example.
+
+A topic ID will always be strictly numeric, "3" in the following example.
+
+The message or topic ID can be found in square brackets in the informational text above each message.
+
+The line editor is quite basic.  Enter your edited message, line-by-line, and type a single period on a line by itself to end the message.
+
+If you post an empty message, the system will discard it and the edit will be ignored.
+
+After an edit, a status flag will appear on the message, letting others know the content of the message has been changed.
+
+```
+jennie_minnie@ctrl-c.club~> 3
+
+*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+How do I spoo the fleem?
+It's not in the docs and my boss is asking.  Any help is appreciated!
+---------------------------------------------------------------------------------
+
+  | === [M5] On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club replied...-------
+  | Simple, you just boondoggle the flibbertigibbet.  That should be in the
+  | manual.
+  | -----------------------------------------------------------------------------
+
+jennie_minnie@ctrl-c.club~> edit M5
+Editing message 'Simple, you just boondoggle the flibbertigibbet.  That shoul...'
+Type a period on a line by itself to end message.
+
+edit~> Simple, you just boondoggle the flibbertigibbet.  That's in the manual on page 45.
+edit~> .
+Message edited!
+
+jennie_minnie@ctrl-c.club~> 3
+
+*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+How do I spoo the fleem?
+It's not in the docs and my boss is asking.  Any help is appreciated!
+---------------------------------------------------------------------------------
+
+  | === [M5] (edited) On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club repli...
+  | Simple, you just boondoggle the flibbertigibbet.  That's in the manual on
+  | page 45.
+  | -----------------------------------------------------------------------------
+```
+
+---
+
+### [d]elete
+`delete #, d #, undelete # - Delete or undelete a topic or message`
+
+Deleting a message or topic will remove the message you select.
+
+To select the message you wish to delete, use either the topic index or the message number.
+
+The message number will always start with the capital letter "M", message "M5" for example.
+
+A topic ID will always be strictly numeric, "3" in the following example.
+
+The message or topic ID can be found in square brackets in the informational text above each message.
+
+After a deletion, a status flag will appear on the message, letting others know the content of the message has been deliberately removed.
+
+If you wish to revert your deletion, "delete" the deleted message or topic ID to restore it.
+
+The `undelete` command is provided as a mnemonic convenience; it is identical in function to the `delete` command.
+```
+jennie_minnie@ctrl-c.club~> 3
+
+*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+How do I spoo the fleem?
+It's not in the docs and my boss is asking.  Any help is appreciated!
+---------------------------------------------------------------------------------
+
+  | === [M5] On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club replied...-------
+  | Simple, you just boondoggle the flibbertigibbet.  That should be in the
+  | manual.
+  | -----------------------------------------------------------------------------
+
+jennie_minnie@ctrl-c.club~> delete M5
+Deleted message 'Simple, you just boondoggle the flibbertigibbet.  That shoul...'
+
+jennie_minnie@ctrl-c.club~> 3
+
+*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+How do I spoo the fleem?
+It's not in the docs and my boss is asking.  Any help is appreciated!
+---------------------------------------------------------------------------------
+
+  | === [M5] (deleted) On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club repl...
+  | -----------------------------------------------------------------------------
+
+jennie_minnie@ctrl-c.club~> undelete M5
+Undeleted message 'Simple, you just boondoggle the flibbertigibbet.  That sho...'
+
+jennie_minnie@ctrl-c.club~> 3
+
+*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+How do I spoo the fleem?
+It's not in the docs and my boss is asking.  Any help is appreciated!
+---------------------------------------------------------------------------------
+
+  | === [M5] On 2018-01-31T05:59:27Z, jennie_minnie@ctrl-c.club replied...-------
+  | Simple, you just boondoggle the flibbertigibbet.  That should be in the
+  | manual.
+  | -----------------------------------------------------------------------------
+
 ```
 
 ---
@@ -185,7 +307,7 @@ This outputs the current version of Iris, along with messsage, topic, and author
 ```
 jennie_minnie@ctrl-c.club~> info
 
-Iris 1.0.5
+Iris 1.0.6
 13 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -194,7 +316,7 @@ Iris 1.0.5
 ---
 
 ### [h]elp
-`help, h, ?   - Display this text`
+`help, h, ?   - Display help text`
 
 This displays helpful reminders of the commands that Iris supports.
 
@@ -217,7 +339,7 @@ iris --version
 ```
 
 ```
-Iris 1.0.5
+Iris 1.0.6
 ```
 
 ---
@@ -233,7 +355,7 @@ iris --stats
 ```
 
 ```
-Iris 1.0.5
+Iris 1.0.6
 13 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -367,7 +489,7 @@ Color and text feature markup cannot be nested.  It won't break anything, but it
 
 Iris must:
   * Be a single file
-    * There should be no required directory structure or complicated setup.
+    * There should be no specific directory structure or complicated setup required.
     * Run a single file, answer one question, and you should be going with Iris!
   * Not require administrator intervention to install
     * Any user on a tilde, or with his or her own server, should be able to start using Iris just by running the file.
@@ -388,6 +510,10 @@ Iris must:
   * Be secure
     * Message files should be owned and only editable by their author.
     * Iris should warn the user if this is not the case.
+  * Be a teacher
+    * Code should be clean, well-organized, and readable.
+  * Be limited in scope
+    * The source code should not exceed 1,000 LOC
 
 ## Technical Bits
 
