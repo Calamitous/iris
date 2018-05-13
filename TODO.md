@@ -6,10 +6,6 @@
 
 # For 1.0.6
 * ~Message deletion~
-* Mark unread topics/topics with unread replies in topics list
-* Add column headers for topics
-* Keep replies on edited topics
-* Document new features
 * ~Message editing~
 * ~Gracefully handle bad message files~
 * ~Fix topic selection when replying without topic ID~
@@ -18,6 +14,10 @@
 * ~Fix truncated message headers being one character too long in topic list~
 * ~Status flag fix~
 * ~Keep order of message on edit~
+* ~Mark unread topics/topics with unread replies in topics list~
+* ~Add column headers for topics~
+* Keep replies on edited topics
+* Document new features
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?
@@ -30,6 +30,7 @@
 * Create Struct to firm up message payload
 * Let Message initialization accept params as a hash
 * Add check for message file format version
+* Build entire topic line, _then_ truncate
 
 # Refactoring
 * Split helptext into separate file?

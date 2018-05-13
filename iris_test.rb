@@ -165,17 +165,19 @@ describe Display do
   it 'has a setting for the calculated screen width'
 
   describe '#topic_index_width' do
-    it 'returns the length in characters of the longest topic index' do
-      Corpus.stubs(:topics).returns(%w{a bc def})
-      Display.topic_index_width.must_equal 1
-
-      Corpus.stubs(:topics).returns(%w{a b c d e f g h i j k})
+    it 'returns the a minimun length of 2' do
+      Corpus.stubs(:topics).returns(%w{a})
       Display.topic_index_width.must_equal 2
     end
 
-    it 'returns 1 if there are no topics' do
+    it 'returns the length in characters of the longest topic index' do
+      Corpus.stubs(:topics).returns((0..1000).to_a)
+      Display.topic_index_width.must_equal 4
+    end
+
+    it 'returns 2 if there are no topics' do
       Corpus.stubs(:topics).returns([])
-      Display.topic_index_width.must_equal 1
+      Display.topic_index_width.must_equal 2
     end
   end
 

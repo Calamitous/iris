@@ -387,11 +387,22 @@ class Message
     (replies.map(&:timestamp).max || timestamp || 'UNKNOWN').gsub(/T/, ' ').gsub(/Z/, '')
   end
 
+  def unread?
+    Corpus.unread_messages.include? self
+  end
+
+  def topic_status
+    return '{r X}' unless valid?
+    unread_count = replies.count(&:unread?)
+    return ' ' if unread_count == 0
+    return '*' if unread_count > 9
+    unread_count.to_s
+  end
+
   def to_topic_line(index)
-    error_marker = valid? ? '|' : 'X'
-    head = [Display.print_index(index), latest_topic_timestamp, Display.print_author(author)].join(' | ')
+    head = [Display.print_index(index), topic_status, latest_topic_timestamp, Display.print_author(author)].join(' | ')
     message_stub = truncated_display_message(Display::WIDTH - head.decolorize.length - 1)
-    error_marker + ' ' + [head, message_stub].join(' | ')
+    '| ' + [head, message_stub].join(' | ')
   end
 
   def to_display
@@ -494,7 +505,7 @@ class Display
   end
 
   def self.topic_index_width
-    Corpus.topics.size.to_s.length
+    [Corpus.topics.size.to_s.length, 2].max
   end
 
   def self.topic_author_width
@@ -509,6 +520,11 @@ class Display
   def self.print_author(author)
     # Right-align
     (author.to_s + (' ' * topic_author_width))[0..(topic_author_width - 1)]
+  end
+
+  def self.topic_header
+    author_head = ('AUTHOR' + (' ' * WIDTH))[0..topic_author_width-1]
+    '| ' + ['ID', 'U', 'TIMESTAMP          ', author_head, 'MESSAGE'].join(' | ')
   end
 end
 
@@ -775,6 +791,7 @@ class Interface
 
   def topics
     Display.say
+    Display.say Display.topic_header
     Corpus.topics.each_with_index do |topic, index|
       Display.say topic.to_topic_line(index + 1)
     end
