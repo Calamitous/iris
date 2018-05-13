@@ -17,11 +17,12 @@
 * ~Mark unread topics/topics with unread replies in topics list~
 * ~Add column headers for topics~
 * ~Document new features~
-* Keep replies on edited topics
+* ~Keep replies on edited topics~
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?
 * Exclude user's own messages from "unread" count
+* Fix message ordering when editing/deleting multiple messages
 
 # Tech debt:
 * Flesh out technical sections

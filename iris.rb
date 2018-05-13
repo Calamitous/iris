@@ -86,7 +86,7 @@ end
 class Corpus
   def self.load
     @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
-    @@topics    = @@corpus.select{ |m| m.parent == nil }
+    @@topics    = @@corpus.select{ |m| m.parent == nil && m.show_me? }
     @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
     @@my_reads  = IrisFile.load_reads
     @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
@@ -149,7 +149,7 @@ class Corpus
     return [] unless hash
     indexes = @@all_parent_hash_to_index[hash]
     return [] unless indexes
-    indexes.map{ |idx| displayable[idx] }.compact
+    indexes.map{ |idx| all[idx] }.compact.select(&:show_me?)
   end
 
   def self.find_topic_by_id(topic_lookup)
@@ -447,8 +447,13 @@ class Message
     }.to_json
   end
 
+  def edit_predecessor
+    return nil unless edit_hash
+    Corpus.find_message_by_hash(edit_hash)
+  end
+
   def replies
-    Corpus.find_all_by_parent_hash(hash)
+     (Corpus.find_all_by_parent_hash(hash) + ((edit_predecessor && edit_predecessor.replies) || [])).compact
   end
 
   def id
