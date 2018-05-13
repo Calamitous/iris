@@ -8,7 +8,7 @@ require 'readline'
 # require 'pry' # Only needed for debugging
 
 class Config
-  VERSION      = '1.0.5'
+  VERSION      = '1.0.6'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   READ_FILE    = "#{ENV['HOME']}/.iris.read"
