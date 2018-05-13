@@ -18,6 +18,7 @@
 * ~Add column headers for topics~
 * ~Document new features~
 * ~Keep replies on edited topics~
+* ~Add unread topic to overall unread count~
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?

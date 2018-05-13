@@ -394,6 +394,7 @@ class Message
   def topic_status
     return '{r X}' unless valid?
     unread_count = replies.count(&:unread?)
+    unread_count += 1 if self.unread?
     return ' ' if unread_count == 0
     return '*' if unread_count > 9
     unread_count.to_s
