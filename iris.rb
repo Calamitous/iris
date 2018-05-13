@@ -280,29 +280,35 @@ end
 class Message
   FILE_FORMAT = 'v2'
 
-  attr_reader :timestamp, :edit_hash, :author, :parent, :message, :errors
+  attr_reader :timestamp, :edit_hash, :author, :parent, :message, :errors, :is_deleted
 
-  def initialize(message, parent = nil, author = Config::AUTHOR, edit_hash = nil, timestamp = Time.now.utc.iso8601)
-    @message   = message
-    @parent    = parent
-    @author    = author
-    @edit_hash = edit_hash
-    @timestamp = timestamp
-    @hash      = hash
-    @errors    = []
+  def initialize(message, parent = nil, author = Config::AUTHOR, edit_hash = nil, timestamp = Time.now.utc.iso8601, is_deleted = nil)
+    @message    = message
+    @parent     = parent
+    @author     = author
+    @edit_hash  = edit_hash
+    @timestamp  = timestamp
+    @hash       = hash
+    @is_deleted = is_deleted
+    @errors     = []
   end
 
   def self.load(payload)
     data = payload if payload.is_a?(Hash)
     data = JSON.parse(payload) if payload.is_a?(String)
 
-    loaded_message = self.new(data['data']['message'], data['data']['parent'], data['data']['author'], data['edit_hash'], data['data']['timestamp'])
+    loaded_message = self.new(data['data']['message'], data['data']['parent'], data['data']['author'], data['edit_hash'], data['data']['timestamp'], data['is_deleted'])
     loaded_message.validate_hash(data['hash'])
     loaded_message
   end
 
   def self.edit(new_text, old_message)
-    Message.new(new_text, old_message.parent, old_message.author, old_message.hash).save!
+    Message.new(new_text, old_message.parent, old_message.author, old_message.hash, old_message.timestamp).save!
+  end
+
+  def delete
+    @is_deleted = !@is_deleted
+    replace!
   end
 
   def edited?
@@ -339,6 +345,12 @@ class Message
     parent.nil?
   end
 
+  def replace!
+    new_corpus = Corpus.mine.reject { |message| message.hash == self.hash } << self
+    IrisFile.write_corpus(JSON.pretty_generate(new_corpus))
+    Corpus.load
+  end
+
   def save!
     new_corpus = Corpus.mine << self
     IrisFile.write_corpus(JSON.pretty_generate(new_corpus))
@@ -351,6 +363,17 @@ class Message
       payload = unconfirmed_payload.to_json
     end
     Base64.encode64(Digest::SHA1.digest(payload))
+  end
+
+  def truncated_display_message(length)
+    if is_deleted
+      stub = '{r TOPIC DELETED BY AUTHOR }'
+    else
+      stub = message.split("\n").first
+    end
+    return stub.colorize if stub.decolorize.length <= length
+    # colorize the stub, then decolorize to strip out any partial tags
+    stub.colorize.slice(0, length - 5 - Display.topic_index_width).decolorize + '...'
   end
 
   def truncated_message(length)
@@ -367,7 +390,7 @@ class Message
   def to_topic_line(index)
     error_marker = valid? ? '|' : 'X'
     head = [Display.print_index(index), latest_topic_timestamp, Display.print_author(author)].join(' | ')
-    message_stub = truncated_message(Display::WIDTH - head.decolorize.length - 1)
+    message_stub = truncated_display_message(Display::WIDTH - head.decolorize.length - 1)
     error_marker + ' ' + [head, message_stub].join(' | ')
   end
 
@@ -382,7 +405,13 @@ class Message
     header_bar = header_bar[0..Display::WIDTH+header_offset-1]
 
     bar = indent_text + ('-' * (Display::WIDTH - indent_text.decolorize.length))
-    message_text = message.wrapped(Display::WIDTH - (indent_text.decolorize.length + 1)).split("\n").map{|m| indent_text + m }.join("\n")
+
+    if @is_deleted
+      message_text = nil
+    else
+      message_text = message.wrapped(Display::WIDTH - (indent_text.decolorize.length + 1)).split("\n").map{|m| indent_text + m }.join("\n")
+    end
+
     [
       '',
       error_marker,
@@ -402,6 +431,7 @@ class Message
     {
       hash: hash,
       edit_hash: edit_hash,
+      is_deleted: is_deleted,
       data: unconfirmed_payload
     }.to_json
   end
@@ -421,12 +451,13 @@ class Message
 
   private
 
-  def edited_flag
+  def status_flag
+    return '{r (deleted) }' if @is_deleted
     '{y (edited) }' if edited?
   end
 
   def leader_text
-    topic? ? "{g ***} [#{topic_id}]" : ["{g ===}", "[#{id}]", edited_flag].compact.join(' ')
+    topic? ? "{g ***} [#{topic_id}] #{status_flag}" : ["{g ===}", "[#{id}]", status_flag].compact.join(' ')
   end
 
   def verb_text
@@ -482,7 +513,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply edit info}
+  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply edit delete info}
   CMD_MAP = {
     't'       => 'topics',
     'topics'  => 'topics',
@@ -495,6 +526,8 @@ class Interface
     'reply'   => 'reply',
     'e'       => 'edit',
     'edit'    => 'edit',
+    'd'       => 'delete',
+    'delete'  => 'delete',
     'q'       => 'quit',
     'quit'    => 'quit',
     'freshen' => 'freshen',
@@ -513,8 +546,9 @@ class Interface
     return show_topic(cmd) if cmd =~ /^\d+$/
     # We must have args, let's handle 'em
     arg = tokens.last
-    return reply(arg) if cmd == 'reply'
-    return edit(arg)  if cmd == 'edit'
+    return reply(arg)  if cmd == 'reply'
+    return edit(arg)   if cmd == 'edit'
+    return delete(arg) if cmd == 'delete'
     Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
   end
 
@@ -593,6 +627,39 @@ class Interface
     Display.say
     Display.say "Editing message '#{title}'"
     Display.say 'Type a period on a line by itself to end message.'
+  end
+
+  def delete(message_id = nil)
+    unless message_id
+      Display.say "I'm not a nihilist; I can't do something with nothing! Include a message ID to delete or undelete."
+      return
+    end
+
+    message =
+      Corpus.find_message_by_hash(message_id) ||
+      Corpus.find_message_by_id(message_id) ||
+      Corpus.find_topic_by_id(message_id)
+
+    unless message
+      Display.say "Could not delete or undelete; unable to find a message with ID '#{message_id}'"
+      return
+    end
+
+    unless Corpus.is_mine?(message)
+      Display.say "Message with ID '#{message_id}' belongs to someone else."
+      Display.say "You can only delete or undelete your own messages!"
+      return
+    end
+
+    message.delete
+
+    title = message.truncated_message(Display::WIDTH - 26)
+    Display.say
+    if message.is_deleted
+      Display.say "{r Deleted message '#{title}' }"
+    else
+      Display.say "{y Undeleted message '#{title}' }"
+    end
   end
 
   def replying_handler(line)

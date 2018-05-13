@@ -5,16 +5,19 @@
 ## Documentation: In Progress
 
 # For 1.0.6
-* Message deletion
+* ~Message deletion~
+* Mark unread topics/topics with unread replies in topics list
+* Add column headers for topics
+* Keep replies on edited topics
+* Document new features
 * ~Message editing~
-  * Allow shelling out to editor for message editing?
 * ~Gracefully handle bad message files~
 * ~Fix topic selection when replying without topic ID~
 * ~Automatically display topics when opening~
-* Add column headers for topics
-* Mark unread topics/topics with unread replies in topics list
 * ~Move display headers into frame line~
 * ~Fix truncated message headers being one character too long in topic list~
+* ~Status flag fix~
+* ~Keep order of message on edit~
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?
@@ -39,6 +42,7 @@
 * Check message file size before loading, to prevent giant files from bombing the system.
 * Add stats to interactive interface
 * Add "private" messages
+* Allow shelling out to editor for message editing?
 
 # Fancify interface:
 * Add (read/unread) counts to topic line
