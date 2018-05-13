@@ -367,7 +367,7 @@ class Message
 
   def truncated_display_message(length)
     if is_deleted
-      stub = '{r TOPIC DELETED BY AUTHOR }'
+      stub = '{r TOPIC DELETED BY AUTHOR}'
     else
       stub = message.split("\n").first
     end
@@ -463,8 +463,8 @@ class Message
   private
 
   def status_flag
-    return '{r (deleted) }' if @is_deleted
-    '{y (edited) }' if edited?
+    return '{r (deleted)}' if @is_deleted
+    '{y (edited)}' if edited?
   end
 
   def leader_text
