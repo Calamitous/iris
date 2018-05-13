@@ -406,8 +406,8 @@ class Message
   end
 
   def to_display
-    error_marker =   valid? ? nil : '### THIS MESSAGE HAS THE FOLLOWING ERRORS ###'
-    error_follower = valid? ? nil : '### THIS MESSAGE MAY BE CORRUPT OR MAY HAVE BEEN TAMPERED WITH ###'
+    error_marker =   valid? ? nil : '{r ### THIS MESSAGE HAS THE FOLLOWING ERRORS ###}'
+    error_follower = valid? ? nil : '{r ### THIS MESSAGE MAY BE CORRUPT OR MAY HAVE BEEN TAMPERED WITH ###}'
 
     message_header = "#{leader_text} On #{timestamp}, #{author} #{verb_text}..."
 
