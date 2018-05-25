@@ -174,7 +174,7 @@ class Corpus
   end
 
   def self.unread_messages
-    @@corpus.reject{ |m| @@my_reads.include? m.hash }
+    displayable.reject{ |m| @@my_reads.include? m.hash }
   end
 
   def self.unread_topics

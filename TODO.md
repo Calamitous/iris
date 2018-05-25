@@ -5,6 +5,7 @@
 ## Documentation: In Progress
 
 # For 1.0.7
+* ~Fix "unread count" bug~
 * Add integration tests
 * Continue to make loader more durable against corrupted data files
 * Time to start refactoring!
