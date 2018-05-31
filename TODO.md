@@ -4,11 +4,12 @@
 ## Editing/Deleting: Complete!
 ## Documentation: In Progress
 
-# For 1.0.7
-* ~Fix "unread count" bug~
+# For 1.0.8
 * Add integration tests
+* Add ability to run with test iris file
 * Continue to make loader more durable against corrupted data files
 * Time to start refactoring!
+* Health check CLI flag
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?
@@ -86,3 +87,5 @@
 * ~Add unread topic to overall unread count~
 
 # Completed as of 1.0.7
+* ~Fix "unread count" bug~
+
