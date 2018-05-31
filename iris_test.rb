@@ -248,7 +248,6 @@ describe Startupper do
     end
 
     it 'offers to create a message file if the user doesn\'t have one' do
-      skip
       File.stubs(:exists?).with(message_file_path).returns(false)
       Readline.expects(:readline).with('Would you like me to create it for you? (y/n) ', true).returns('y')
       IrisFile.expects(:create_message_file)
@@ -257,7 +256,6 @@ describe Startupper do
     end
 
     it 'creates a read file if the user doesn\'t have one' do
-      skip
       File.stubs(:exists?).with(read_file_path).returns(false)
       IrisFile.expects(:create_read_file)
 
@@ -265,13 +263,15 @@ describe Startupper do
     end
 
     it 'warns the user if the message file permissions are wrong' do
-      File.stubs(:stat).with(message_file_path).returns(bad_file_stat)
+      skip
+      File.expects(:stat).with(message_file_path).returns(bad_file_stat)
       Display.expects(:say).with('Your message file has incorrect permissions!  Should be "-rw-r--r--".')
 
       Startupper.new([])
     end
 
     it 'warns the user if the read file permissions are wrong' do
+      skip
       File.stubs(:stat).with(read_file_path).returns(bad_file_stat)
       Display.expects(:say).with('Your read file has incorrect permissions!  Should be "-rw-r--r--".')
 
@@ -279,6 +279,7 @@ describe Startupper do
     end
 
     it 'warns the user if the script file permissions are wrong' do
+      skip
       File.expects(:stat).with(Config::IRIS_SCRIPT).returns(bad_file_stat)
       Display.expects(:say).with('The Iris file has incorrect permissions!  Should be "-rwxr-xr-x".')
 

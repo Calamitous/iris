@@ -499,6 +499,16 @@ class Display
   MIN_WIDTH = 80
   WIDTH = [ENV['COLUMNS'].to_i, `tput cols`.chomp.to_i, MIN_WIDTH].compact.max
 
+  def self.permissions_error(filename, file_description, permission_string, mode_string, consequence = nil)
+    message = [
+      "Your #{file_description} file has incorrect permissions!  Should be \"#{permission_string}\".",
+      "You can change this from the command line with:",
+      "  chmod #{mode_string} #{filename}",
+      consequence
+    ].compact
+    self.flowerbox(message)
+  end
+
   def self.flowerbox(*lines, box_character: '*', box_thickness: 1)
     box_thickness.times do say box_character * WIDTH end
     lines.each { |line| say line }
@@ -841,13 +851,13 @@ class Interface
     if !@history_loaded && File.exist?(Config::HISTORY_FILE)
       @history_loaded = true
       if File.readable?(Config::HISTORY_FILE)
-        File.readlines(Config::HISTORY_FILE).each {|l| Readline::HISTORY.push(l.chomp)}
+        File.readlines(Config::HISTORY_FILE).each { |l| Readline::HISTORY.push(l.chomp) }
       end
     end
 
     if line = Readline.readline(prompt, true)
       if File.writable?(Config::HISTORY_FILE)
-        File.open(Config::HISTORY_FILE) {|f| f.write(line+"\n")}
+        File.open(Config::HISTORY_FILE) { |f| f.write(line+"\n") }
       end
       return line
     else
@@ -863,7 +873,7 @@ class CLI
       '',
       'Usage',
       '========',
-      "#{__FILE__} [options]",
+      "#{Config::IRIS_SCRIPT} [options]",
       '',
       'Options',
       '========',
@@ -932,26 +942,15 @@ class Startupper
     IrisFile.create_read_file unless File.exists?(Config::READ_FILE)
 
     if File.stat(Config::MESSAGE_FILE).mode != 33188
-      Display.flowerbox(
-        'Your message file has incorrect permissions!  Should be "-rw-r--r--".',
-        'You can change this from the command line with:',
-        "  chmod 644 #{Config::MESSAGE_FILE}",
-        'Leaving your file with incorrect permissions could allow unauthorized edits!')
+      Display.permissions_error(Config::MESSAGE_FILE, 'message', '-rw-r--r--', '644', "Leaving your file with incorrect permissions could allow unauthorized edits!")
     end
 
     if File.stat(Config::READ_FILE).mode != 33188
-      Display.flowerbox(
-        'Your read file has incorrect permissions!  Should be "-rw-r--r--".',
-        'You can change this from the command line with:',
-        "  chmod 644 #{Config::READ_FILE}")
+      Display.permissions_error(Config::READ_FILE, 'read', '-rw-r--r--', '644')
     end
 
     if File.stat(Config::IRIS_SCRIPT).mode != 33261
-      Display.flowerbox(
-        'The Iris file has incorrect permissions!  Should be "-rwxr-xr-x".',
-        'You can change this from the command line with:',
-        "  chmod 755 #{__FILE__}",
-        'If this file has the wrong permissions the program may be tampered with!')
+      Display.permissions_error(Config::IRIS_SCRIPT, 'Iris', '-rwxr-xr-x', '755', 'If this file has the wrong permissions the program may be tampered with!')
     end
   end
 end
