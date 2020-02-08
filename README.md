@@ -13,6 +13,7 @@ Iris is strictly text-based, requiring no GUI or web servers.
  * [Command-line Options](#command-line-options)
  * [Text Features/Markup](#text-featuresmarkup)
  * [Philosophy](#philosophy)
+ * [Tests](#tests)
  * [Technical Bits](#technical-bits)
  * [License](#license)
 
@@ -329,6 +330,7 @@ There are a few options you can pass in from the command-line:
  * [--interactive, -i](#--interactive-i)
  * [--dump, -d](#--dump-d)
  * [--help, -h](#--help-h)
+ * [--debug](#--debug)
 
 ### --version/-v
 
@@ -386,7 +388,6 @@ This option turns on debug mode.  Warnings and errors will be output as the prog
 Having these messages constantly appear can be distracting or annoying during regular Iris usage, but are useful when tracking down issues.
 
 This option works in both interactive and non-interactive mode.
-
 
 ---
 
@@ -535,6 +536,13 @@ Iris must:
     * Code should be clean, well-organized, and readable.
   * Be limited in scope
     * The source code should not exceed 1,000 LOC
+
+## Tests
+
+The one place we're breaking the rules on requiring gems is in the tests.  Mocha's just too good.  :)  To run the tests, you can install the following (these will end up in your user directory, to minimize the chances of interfering with system gems).
+
+`gem install --user-install minitest`
+`gem install --user-install mocha`
 
 ## Technical Bits
 

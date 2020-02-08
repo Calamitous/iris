@@ -18,6 +18,7 @@ class Config
   AUTHOR       = "#{USER}@#{HOSTNAME}"
   OPTIONS      = %w[
     --dump
+    --debug
     --help
     --interactive
     --stats
@@ -34,6 +35,8 @@ class Config
   NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats]
   NONFILE_OPTIONS        = %w[-h --help -v --version]
 
+  @@debug_mode = false
+
   def self.find_files
     (`ls /home/**/.iris.messages`).split("\n")
   end
@@ -48,6 +51,14 @@ class Config
 
   def self.historyfile_filename
     "#{messagefile_filename}.history"
+  end
+
+  def self.enable_debug_mode
+    @@debug_mode = true
+  end
+
+  def self.debug?
+    @@debug_mode
   end
 end
 
@@ -257,7 +268,13 @@ class IrisFile
     end
 
     uid = File.stat(filepath).uid
-    username = Etc.getpwuid(uid).name
+
+    begin
+      username = Etc.getpwuid(uid).name
+    rescue ArgumentError
+      Display.warn("'#{filepath}' does not appear to have a valid UID in /etc/passwd, skipping...")
+      return []
+    end
 
     payload.map do |message_json|
       new_message = Message.load(message_json)
@@ -559,6 +576,10 @@ class Display
   def self.say(stuff = '')
     stuff = stuff.join("\n") if stuff.is_a? Array
     puts stuff.colorize
+  end
+
+  def self.warn(stuff = '')
+    say("{y WARNING: }#{stuff}") if Config.debug?
   end
 
   def self.topic_index_width
@@ -929,6 +950,7 @@ class CLI
       '--interactive, -i - Enter interactive mode (default)',
       '--dump, -d        - Dump entire message corpus out.',
       '--test-file <filename>, -f  <filename> - Use the specified test file for messages.',
+      '--debug           - Print warnings and debug informtation during use.',
       '',
       'If no options are provided, Iris will enter interactive mode.',
       box_character: '')
@@ -967,6 +989,8 @@ class Startupper
     load_corpus(args)
 
     is_interactive = (args & Config::NONINTERACTIVE_OPTIONS).none? || (args & Config::INTERACTIVE_OPTIONS).any?
+
+    Config.enable_debug_mode if (args & %w{--debug}).any?
 
     if is_interactive
       Interface.start(args)
