@@ -379,6 +379,27 @@ This command does not enter Iris' interactive mode.
 
 ---
 
+### --debug
+
+This option turns on debug mode.  Warnings and errors will be output as the program is used.
+
+Having these messages constantly appear can be distracting or annoying during regular Iris usage, but are useful when tracking down issues.
+
+This option works in both interactive and non-interactive mode.
+
+
+---
+
+### --test-file/-f
+
+`iris --test-file junk.messages.iris`
+
+This option forces Iris to load the specified message file, instead of scanning the `/home` directory.
+
+This option works in both interactive and non-interactive mode.
+
+---
+
 ### --help/-h
 
 This command displays a complete list of options that Iris recognizes.

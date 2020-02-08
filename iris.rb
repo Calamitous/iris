@@ -1,25 +1,53 @@
 #!/usr/bin/env ruby
-require 'time'
 require 'base64'
 require 'digest'
-require 'json'
 require 'etc'
+require 'json'
 require 'readline'
+require 'time'
 # require 'pry' # Only needed for debugging
 
 class Config
   VERSION      = '1.0.7'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
-  READ_FILE    = "#{ENV['HOME']}/.iris.read"
   IRIS_SCRIPT  = __FILE__
 
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
   AUTHOR       = "#{USER}@#{HOSTNAME}"
+  OPTIONS      = %w[
+    --dump
+    --help
+    --interactive
+    --stats
+    --test-file
+    --version
+    -d
+    -f
+    -h
+    -i
+    -s
+    -v
+  ]
+  INTERACTIVE_OPTIONS    = %w[-i --interactive]
+  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats]
+  NONFILE_OPTIONS        = %w[-h --help -v --version]
 
   def self.find_files
     (`ls /home/**/.iris.messages`).split("\n")
+  end
+
+  def self.messagefile_filename
+    $test_corpus_file || Config::MESSAGE_FILE
+  end
+
+  def self.readfile_filename
+    "#{messagefile_filename}.read"
+  end
+
+  def self.historyfile_filename
+    "#{messagefile_filename}.history"
   end
 end
 
@@ -85,9 +113,14 @@ end
 
 class Corpus
   def self.load
-    @@corpus    = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
-    @@topics    = @@corpus.select{ |m| m.parent == nil && m.show_me? }
+    if $test_corpus_file
+      @@corpus = IrisFile.load_messages
+    else
+      @@corpus = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
+    end
+
     @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
+    @@topics    = @@corpus.select{ |m| m.parent == nil && m.show_me? }
     @@my_reads  = IrisFile.load_reads
     @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
     @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
@@ -187,15 +220,17 @@ class Corpus
 end
 
 class IrisFile
-  def self.load_messages(filepath = Config::MESSAGE_FILE)
-    # For logger: "Checking #{filepath}"
+  def self.load_messages(filepath = nil)
+    if filepath.nil?
+      filepath = Config.messagefile_filename
+    end
+
     return [] unless File.exists?(filepath)
 
-    # For logger: "Found, parsing #{filepath}..."
     begin
       payload = JSON.parse(File.read(filepath))
     rescue JSON::ParserError => e
-      if filepath == Config::MESSAGE_FILE
+      if filepath == Config.messagefile_filename
         Display.flowerbox(
           'Your message file appears to be corrupt.',
           "Could not parse valid JSON from #{filepath}",
@@ -208,7 +243,7 @@ class IrisFile
     end
 
     unless payload.is_a?(Array)
-      if filepath == Config::MESSAGE_FILE
+      if filepath == Config.messagefile_filename
         Display.flowerbox(
           'Your message file appears to be corrupt.',
           "Could not interpret data from #{filepath}",
@@ -232,14 +267,14 @@ class IrisFile
   end
 
   def self.load_reads
-    return [] unless File.exists? Config::READ_FILE
+    return [] unless File.exists? Config.readfile_filename
 
     begin
-      read_array = JSON.parse(File.read(Config::READ_FILE))
+      read_array = JSON.parse(File.read(Config.readfile_filename))
     rescue JSON::ParserError => e
       Display.flowerbox(
         'Your read file appears to be corrupt.',
-        "Could not parse valid JSON from #{Config::READ_FILE}",
+        "Could not parse valid JSON from #{Config.readfile_filename}",
         'Please fix or delete this read file to use Iris.')
       exit(1)
     end
@@ -247,7 +282,7 @@ class IrisFile
     unless read_array.is_a?(Array)
       Display.flowerbox(
         'Your read file appears to be corrupt.',
-        "Could not interpret data from #{Config::READ_FILE}",
+        "Could not interpret data from #{Config.readfile_filename}",
         '(It\'s not a JSON array of message hashes, as far as I can tell)',
         'Please fix or delete this read file to use Iris.')
       exit(1)
@@ -257,23 +292,29 @@ class IrisFile
   end
 
   def self.create_message_file
+    raise 'Should not try to create message file in test mode!' if $test_corpus_file
     raise 'Message file exists; refusing to overwrite!' if File.exists?(Config::MESSAGE_FILE)
     File.umask(0122)
     File.open(Config::MESSAGE_FILE, 'w') { |f| f.write('[]') }
   end
 
   def self.create_read_file
-    raise 'Read file exists; refusing to overwrite!' if File.exists?(Config::READ_FILE)
+    return if File.exists?(Config.readfile_filename)
+
     File.umask(0122)
-    File.open(Config::READ_FILE, 'w') { |f| f.write('[]') }
+    File.open(Config.readfile_filename, 'w') { |f| f.write('[]') }
   end
 
   def self.write_corpus(corpus)
-    File.write(Config::MESSAGE_FILE, corpus)
+    File.write(Config.messagefile_filename, corpus)
   end
 
   def self.write_read_file(new_read_hashes)
-    File.write(Config::READ_FILE, new_read_hashes)
+    if $test_corpus_file
+      File.write("#{$test_corpus_file}.read", new_read_hashes)
+    else
+      File.write(Config.readfile_filename, new_read_hashes)
+    end
   end
 end
 
@@ -372,7 +413,7 @@ class Message
       stub = message.split("\n").first
     end
     return stub.colorize if stub.decolorize.length <= length
-    # colorize the stub, then decolorize to strip out any partial tags
+    # Colorize the stub, then decolorize to strip out any partial tags
     stub.colorize.slice(0, length - 5 - Display.topic_index_width).decolorize + '...'
   end
 
@@ -577,7 +618,7 @@ class Interface
     cmd = CMD_MAP[cmd] || cmd
     return self.send(cmd.to_sym) if ONE_SHOTS.include?(cmd) && tokens.length == 1
     return show_topic(cmd) if cmd =~ /^\d+$/
-    # We must have args, let's handle 'em
+    # If we've gotten this far, we must have args. Let's handle 'em.
     arg = tokens.last
     return reply(arg)  if cmd == 'reply'
     return edit(arg)   if cmd == 'edit'
@@ -590,11 +631,17 @@ class Interface
   end
 
   def self.info
+    topic_count          = Corpus.topics.size
+    unread_topic_count   = Corpus.unread_topics.size
+    message_count        = Corpus.size
+    unread_message_count = Corpus.unread_messages.size
+    author_count         = Corpus.all.map(&:author).uniq.size
+
     Display.flowerbox(
       "Iris #{Config::VERSION}",
-      "#{Corpus.topics.size} #{'topic'.pluralize(Corpus.topics.size)}, #{Corpus.unread_topics.size} unread.",
-      "#{Corpus.size} #{'message'.pluralize(Corpus.size)}, #{Corpus.unread_messages.size} unread.",
-      "#{Corpus.all.map(&:author).uniq.size} authors.",
+      "#{topic_count} #{'topic'.pluralize(topic_count)}, #{unread_topic_count} unread.",
+      "#{message_count} #{'message'.pluralize(message_count)}, #{unread_message_count} unread.",
+      "#{author_count} #{'author'.pluralize(author_count)}.",
         box_thickness: 0)
   end
 
@@ -794,7 +841,6 @@ class Interface
   end
 
   def initialize(args)
-    Corpus.load
     @history_loaded = false
     @mode = :browsing
 
@@ -882,6 +928,7 @@ class CLI
       '--stats, -s       - Display Iris version and message stats.',
       '--interactive, -i - Enter interactive mode (default)',
       '--dump, -d        - Dump entire message corpus out.',
+      '--test-file <filename>, -f  <filename> - Use the specified test file for messages.',
       '',
       'If no options are provided, Iris will enter interactive mode.',
       box_character: '')
@@ -899,13 +946,11 @@ class CLI
     end
 
     if (args & %w{-s --stats}).any?
-      Corpus.load
       Interface.info
       exit(0)
     end
 
     if (args & %w{-d --dump}).any?
-      Corpus.load
       puts Corpus.to_json
       exit(0)
     end
@@ -917,16 +962,21 @@ end
 
 class Startupper
   def initialize(args)
-    perform_startup_checks
+    perform_file_checks unless Config::NONFILE_OPTIONS.include?(args)
 
-    if (args & %w{-i --interactive}).any? || args.empty?
+    load_corpus(args)
+
+    is_interactive = (args & Config::NONINTERACTIVE_OPTIONS).none? || (args & Config::INTERACTIVE_OPTIONS).any?
+
+    if is_interactive
       Interface.start(args)
     else
       CLI.start(args)
     end
   end
 
-  def perform_startup_checks
+  def perform_file_checks
+    raise 'Should not try to perform file checks in test mode!' if $test_corpus_file
     unless File.exists?(Config::MESSAGE_FILE)
       Display.say "You don't have a message file at #{Config::MESSAGE_FILE}."
       response = Readline.readline 'Would you like me to create it for you? (y/n) ', true
@@ -939,19 +989,43 @@ class Startupper
       end
     end
 
-    IrisFile.create_read_file unless File.exists?(Config::READ_FILE)
+    IrisFile.create_read_file
 
     if File.stat(Config::MESSAGE_FILE).mode != 33188
       Display.permissions_error(Config::MESSAGE_FILE, 'message', '-rw-r--r--', '644', "Leaving your file with incorrect permissions could allow unauthorized edits!")
     end
 
-    if File.stat(Config::READ_FILE).mode != 33188
-      Display.permissions_error(Config::READ_FILE, 'read', '-rw-r--r--', '644')
+    if File.stat(Config.readfile_filename).mode != 33188
+      Display.permissions_error(Config.readfile_filename, 'read', '-rw-r--r--', '644')
     end
 
     if File.stat(Config::IRIS_SCRIPT).mode != 33261
       Display.permissions_error(Config::IRIS_SCRIPT, 'Iris', '-rwxr-xr-x', '755', 'If this file has the wrong permissions the program may be tampered with!')
     end
+  end
+
+  def load_corpus(args)
+    $test_corpus_file = nil
+
+    if (args & %w{-f --test-file}).any?
+      filename_idx = (args.index('-f') || args.index('--test-file')) + 1
+      filename = args[filename_idx]
+
+      unless filename
+        Display.say "Option `--test-file` (`-f`) expects a filename"
+        exit(1)
+      end
+
+      unless File.exist?(filename)
+        Display.say "Could not load test file: #{filename}"
+        exit(1)
+      end
+
+      Display.say "Using Iris with test file: #{filename}"
+      $test_corpus_file = filename
+    end
+
+    Corpus.load
   end
 end
 

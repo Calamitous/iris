@@ -35,7 +35,7 @@ describe Config do
 
   describe '.find_files' do
     it 'looks up all the Iris message files on the system' do
-      # I am so sorry
+      # I am so sorry about this `expects` clause
       Config.expects(:`).with('ls /home/**/.iris.messages').returns('')
       Config.find_files
     end
@@ -230,11 +230,17 @@ describe Startupper do
     let(:bad_file_stat)     { a = mock; a.stubs(:mode).returns(2); a }
 
     before do
-      Config.send(:remove_const, 'MESSAGE_FILE')
-      Config.send(:remove_const, 'READ_FILE')
-      Config.send(:remove_const, 'IRIS_SCRIPT')
-      Config::MESSAGE_FILE = message_file_path
-      Config::READ_FILE    = read_file_path
+      Config.stubs(:find_files).returns([])
+      IrisFile.stubs(:load_messages).returns([])
+      IrisFile.stubs(:load_reads).returns([])
+
+      Config.send(:remove_const, 'MESSAGE_FILE') if Config.const_defined? 'MESSAGE_FILE'
+      Config.send(:remove_const, 'READ_FILE') if Config.const_defined? 'READ_FILE'
+      Config.send(:remove_const, 'IRIS_SCRIPT') if Config.const_defined? 'IRIS_SCRIPT'
+      Config::MESSAGE_FILE         = message_file_path
+      Config::READ_FILE            = read_file_path
+      Config.stubs(:messagefile_filename).returns(message_file_path)
+      Config.stubs(:readfile_filename).returns(read_file_path)
       Config::IRIS_SCRIPT  = 'doots'
 
       File.stubs(:exists?).returns(true)

@@ -5,16 +5,20 @@
 ## Documentation: In Progress
 
 # For 1.0.8
+* Add less-style pagination for long messages
+* Add -q/--quiet flag, to create iris message file without user intervention?
 * Add integration tests
 * Add ability to run with test iris file
 * Continue to make loader more durable against corrupted data files
 * Time to start refactoring!
 * Health check CLI flag
+* Create local copies of replied-to messages to limit tampering
 
 # Bugs:
 * Is `Time.now.utc.iso8601` working as expected?
 * Exclude user's own messages from "unread" count
 * Fix message ordering when editing/deleting multiple messages
+* Replying implicitly to 24 replied to 6 instead
 
 # Tech debt:
 * Flesh out technical sections
@@ -28,6 +32,10 @@
 * Split helptext into separate file?
 
 # Features:
+* Add ability to fully manage/read messages from CLI?
+* Add local timezone rendering
+* Add pagiation/less for long message lists
+* Add "Mark unread" option
 * Add read-only mode if user doesn't want/can't have message file
 * Add user muting (~/.iris.muted)
 * Add message editing
