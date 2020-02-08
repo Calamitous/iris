@@ -94,6 +94,9 @@
 * ~Keep replies on edited topics~
 * ~Add unread topic to overall unread count~
 
-# Completed as of 1.0.7
+# Completed as of 1.0.8
 * ~Fix "unread count" bug~
+* ~Fix bug when UID has been deleted from /etc/passwd, but user's message file still exists~
+* ~Add debug mode to Iris~
+* ~Refactor Iris to make it easier to load test files to run with~
 
