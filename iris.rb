@@ -381,7 +381,7 @@ class Message
     @errors << 'Unvalidatable; could not parse username' if username.nil?
     @errors << 'Unvalidatable; username is empty' if username.empty?
 
-    user_regex = Regexp.new("(.*)@#{Config::HOSTNAME}$")
+    user_regex = Regexp.new("(.*)@.*$")
     author_match = user_regex.match(author)
 
     unless author_match && author_match[1] == username
