@@ -92,14 +92,14 @@ class String
     r = /\\{|{[rgybmcwniuv]+\s|\\}|}/
     split = self.split(r, 2)
 
-    return self if r.match(self).nil?
+    return self.color_bounded if r.match(self).nil?
     newstr = split.first + $&.color_token + split.last
 
     if r.match(newstr).nil?
-      return (newstr + COLOR_RESET).gsub(/\|KOPEN\|/, '{').gsub(/\|KCLOSE\|/, '}')
+      return (newstr + COLOR_RESET).gsub(/\|KOPEN\|/, '{').gsub(/\|KCLOSE\|/, '}').color_bounded
     end
 
-    newstr.colorize
+    newstr.colorize.color_bounded
   end
 
   def decolorize
@@ -119,6 +119,10 @@ class String
 
   def pluralize(count)
     count == 1 ? self : self + 's'
+  end
+
+  def color_bounded
+    COLOR_RESET + self.gsub(/\n/, "\n#{COLOR_RESET}") + COLOR_RESET
   end
 end
 
@@ -592,7 +596,7 @@ class Display
 
   def self.print_index(index)
     # Left-align
-    ((' ' * topic_index_width) + index.to_s)[(-topic_index_width)..-1]
+    '{w ' + ((' ' * topic_index_width) + index.to_s)[(-topic_index_width)..-1] + '}'
   end
 
   def self.print_author(author)
