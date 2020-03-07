@@ -56,6 +56,9 @@
 * Add message when no topics are found
 * Add message troubleshooting tool, for deep data dive
 * Add option to skip color
+* Add option to mark all messages as read
+* Add option to mark all messages in a thread as read
+* Condense generated color codes (color resets are especially noisy)
 
 # Icebox
 * ncurses client
