@@ -255,6 +255,9 @@ class IrisFile
         Display.say " * Unable to parse #{filepath}, skipping..."
         return []
       end
+    rescue Errno::EACCES => e
+      Display.say " * Unable to read data from #{filepath}, permission denied.  Skipping..."
+      return []
     end
 
     unless payload.is_a?(Array)
