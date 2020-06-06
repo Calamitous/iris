@@ -106,3 +106,6 @@
 # Completed as of 1.0.9
 * Stop checking domain on user validation
 * Fix bug causing color overflow when color tags break.  Special thanks go out to Japanoise (https://github.com/japanoise) for reporting this bug!
+
+# Completed as of 1.0.10
+* Fix bug causing system to crash when a user removes read permissions from their directory/iris.messages file

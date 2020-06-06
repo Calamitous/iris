@@ -8,7 +8,7 @@ require 'time'
 # require 'pry' # Only needed for debugging
 
 class Config
-  VERSION      = '1.0.9'
+  VERSION      = '1.0.10'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   IRIS_SCRIPT  = __FILE__
@@ -255,6 +255,9 @@ class IrisFile
         Display.say " * Unable to parse #{filepath}, skipping..."
         return []
       end
+    rescue Errno::EACCES => e
+      Display.say " * Unable to read data from #{filepath}, permission denied.  Skipping..."
+      return []
     end
 
     unless payload.is_a?(Array)
