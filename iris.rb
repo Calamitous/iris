@@ -8,7 +8,7 @@ require 'time'
 # require 'pry' # Only needed for debugging
 
 class Config
-  VERSION      = '1.0.10'
+  VERSION      = '1.0.11'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   IRIS_SCRIPT  = __FILE__
@@ -135,9 +135,14 @@ class Corpus
     end
 
     @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
-    @@topics    = @@corpus.select{ |m| m.parent == nil && m.show_me? }
     @@my_reads  = IrisFile.load_reads
+
+    @@unread_messages = nil
+
     @@all_hash_to_index = @@corpus.reduce({}) { |agg, msg| agg[msg.hash] = @@corpus.index(msg); agg }
+    @@edited_hashes     = @@corpus.map(&:edit_hash).compact
+    @@topics            = @@corpus.select(&:is_topic?)
+
     @@all_parent_hash_to_index = @@corpus.reduce({}) do |agg, msg|
       agg[msg.parent] ||= []
       agg[msg.parent] << @@corpus.index(msg)
@@ -153,8 +158,8 @@ class Corpus
     @@corpus
   end
 
-  def self.displayable
-    @@corpus.select { |message| message.show_me? }
+  def self.edited_hashes
+    @@edited_hashes
   end
 
   def self.topics
@@ -188,9 +193,9 @@ class Corpus
     all[index]
   end
 
-  def self.find_message_by_edit_hash(hash)
+  def self.has_edit_hash(hash)
     return nil unless hash
-    Corpus.all.detect { |message| message.edit_hash == hash }
+    Corpus.all.map(&:edit_hash).include?(hash)
   end
 
   def self.find_all_by_parent_hash(hash)
@@ -222,11 +227,21 @@ class Corpus
   end
 
   def self.unread_messages
-    displayable.reject{ |m| @@my_reads.include? m.hash }
+    @@unread_messages ||= @@corpus
+      .select { |message| message.show_me? }
+      .reject{ |m| @@my_reads.include? m.hash }
+  end
+
+  def self.unread_message_hashes
+    self.unread_messages.map(&:hash)
   end
 
   def self.unread_topics
-    @@topics.reject{ |m| @@my_reads.include? m.hash }
+    @@topics.select do |m|
+      # Is the topic unread, or are any of its displayable replies unread?
+      m.unread? ||
+        find_all_by_parent_hash(m.hash).reduce(false) { |agg, r| agg || r.unread? }
+    end
   end
 
   def self.size
@@ -256,7 +271,7 @@ class IrisFile
         return []
       end
     rescue Errno::EACCES => e
-      Display.say " * Unable to read data from #{filepath}, permission denied.  Skipping..."
+      Display.warn " * Unable to read data from #{filepath}, permission denied.  Skipping..."
       return []
     end
 
@@ -371,6 +386,10 @@ class Message
     Message.new(new_text, old_message.parent, old_message.author, old_message.hash, old_message.timestamp).save!
   end
 
+  def is_topic?
+    parent.nil? && show_me?
+  end
+
   def delete
     @is_deleted = !@is_deleted
     replace!
@@ -380,8 +399,9 @@ class Message
     !(edit_hash.nil? || edit_hash.empty?)
   end
 
+  # Only show messages that don't have a following, edited message
   def show_me?
-    !Corpus.find_message_by_edit_hash(hash)
+    !Corpus.edited_hashes.include?(hash)
   end
 
   def validate_user(username)
@@ -444,7 +464,7 @@ class Message
   def truncated_message(length)
     stub = message.split("\n").first
     return stub.colorize if stub.decolorize.length <= length
-    # colorize the stub, then decolorize to strip out any partial tags
+    # Colorize the stub, then decolorize to strip out any partial tags
     stub.colorize.slice(0, length - 5 - Display.topic_index_width).decolorize + '...'
   end
 
@@ -479,7 +499,7 @@ class Message
 
     header_bar = (indent_text + message_header + ('-' * (Display::WIDTH)))
     header_offset = header_bar.length - header_bar.decolorize.length
-    header_bar = header_bar[0..Display::WIDTH+header_offset-1]
+    header_bar = header_bar[0..Display::WIDTH + header_offset - 1]
 
     bar = indent_text + ('-' * (Display::WIDTH - indent_text.decolorize.length))
 
@@ -518,6 +538,8 @@ class Message
     Corpus.find_message_by_hash(edit_hash)
   end
 
+  # Find all messages replying to the current topic, including replies to topics
+  # which have been edited.
   def replies
      (Corpus.find_all_by_parent_hash(hash) + ((edit_predecessor && edit_predecessor.replies) || [])).compact
   end
@@ -562,7 +584,14 @@ end
 
 class Display
   MIN_WIDTH = 80
+  MIN_HEIGHT = 8
+
   WIDTH = [ENV['COLUMNS'].to_i, `tput cols`.chomp.to_i, MIN_WIDTH].compact.max
+  HEIGHT = [ENV['ROWS'].to_i, `tput lines`.chomp.to_i, MIN_HEIGHT].compact.max
+
+  # p Readline.get_screen_size
+  # WIDTH = Readline.get_screen_size[1]
+  TITLE_WIDTH = WIDTH - 26
 
   def self.permissions_error(filename, file_description, permission_string, mode_string, consequence = nil)
     message = [
@@ -614,10 +643,14 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics compose quit freshen reset_display reply edit delete info}
+  ONE_SHOTS = %w{help topics unread compose quit freshen reset_display reply edit delete mark_read info}
   CMD_MAP = {
     't'        => 'topics',
     'topics'   => 'topics',
+    'u'        => 'unread',
+    'unread'   => 'unread',
+    'm'        => 'mark_read',
+    'mark'     => 'mark_read',
     'c'        => 'compose',
     'compose'  => 'compose',
     'h'        => 'help',
@@ -651,6 +684,7 @@ class Interface
     return reply(arg)  if cmd == 'reply'
     return edit(arg)   if cmd == 'edit'
     return delete(arg) if cmd == 'delete'
+    return mark_read(arg) if cmd == 'mark_read'
     Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
   end
 
@@ -700,7 +734,7 @@ class Interface
 
     @mode = :replying
     @text_buffer = ''
-    title = Corpus.find_topic_by_hash(parent.hash).truncated_message(Display::WIDTH - 26)
+    title = Corpus.find_topic_by_hash(parent.hash).truncated_message(Display::TITLE_WIDTH)
     Display.say
     Display.say "Writing a reply to topic '#{title}'"
     Display.say 'Type a period on a line by itself to end message.'
@@ -731,10 +765,31 @@ class Interface
     @mode = :editing
     @old_message = message
     @text_buffer = ''
-    title = message.truncated_message(Display::WIDTH - 26)
+    title = message.truncated_message(Display::TITLE_WIDTH)
     Display.say
     Display.say "Editing message '#{title}'"
     Display.say 'Type a period on a line by itself to end message.'
+  end
+
+  def mark_read(message_id = nil)
+    unless message_id
+      Display.say "I'm not a nihilist; I can't do something with nothing! Include a message ID to mark as read."
+      return
+    end
+
+    message =
+      Corpus.find_message_by_hash(message_id) ||
+      Corpus.find_message_by_id(message_id) ||
+      Corpus.find_topic_by_id(message_id)
+
+    unless message
+      Display.say "Could not mark as read; unable to find a message with ID '#{message_id}'"
+      return
+    end
+
+    new_reads = (Corpus.read_hashes + [message.hash] + message.replies.map(&:hash)).uniq.sort
+    IrisFile.write_read_file(new_reads.to_json)
+    Corpus.load
   end
 
   def delete(message_id = nil)
@@ -761,7 +816,7 @@ class Interface
 
     message.delete
 
-    title = message.truncated_message(Display::WIDTH - 26)
+    title = message.truncated_message(Display::TITLE_WIDTH)
     Display.say
     if message.is_deleted
       Display.say "{r Deleted message '#{title}' }"
@@ -838,6 +893,7 @@ class Interface
 
   def show_topic(num)
     index = num.to_i - 1
+    # TODO: Paginate here
     if index >= 0 && index < Corpus.topics.length
       msg = Corpus.topics[index]
       @reply_topic = msg.hash
@@ -873,16 +929,35 @@ class Interface
     @mode = :browsing
 
     Display.say "Welcome to Iris v#{Config::VERSION}.  Type 'help' for a list of commands; Ctrl-D or 'quit' to leave."
-    topics
+    unread
 
     while line = readline(prompt) do
       handle(line)
     end
   end
 
+  def unread
+    Display.say
+
+    if Corpus.unread_topics.size == 0
+      Display.say "{gvi You're all caught up!  No new topics to read.}"
+      return
+    end
+
+    Display.say Display.topic_header
+    # TODO: Paginate here
+    Corpus.topics.each_with_index do |topic, index|
+      if Corpus.unread_topics.include?(topic)
+        Display.say topic.to_topic_line(index + 1)
+      end
+    end
+    Display.say
+  end
+
   def topics
     Display.say
     Display.say Display.topic_header
+    # TODO: Paginate here
     Corpus.topics.each_with_index do |topic, index|
       Display.say topic.to_topic_line(index + 1)
     end
@@ -896,20 +971,22 @@ class Interface
       'Commands',
       '========',
       'READING',
-      'topics, t     - List all topics',
-      '# (topic id)  - Read specified topic',
-      'help, h, ?    - Display this text',
+      'topics, t        - List all topics',
+      'unread, u        - List all topics with unread messages',
+      '# (topic id)     - Read specified topic',
+      'mark_read #, m # - Mark the associated topic as read',
+      'help, h, ?       - Display this text',
       '',
       'WRITING',
-      'compose, c    - Add a new topic',
-      'reply #, r #  - Reply to a specific topic',
-      'edit #, e #   - Edit a topic or message',
+      'compose, c       - Add a new topic',
+      'reply #, r #     - Reply to a specific topic',
+      'edit #, e #      - Edit a topic or message',
       'delete #, d #, undelete # - Delete {u or undelete} a topic or message',
       '',
       'SCREEN AND FILE UTILITIES',
-      'freshen, f    - Reload to get any new messages',
-      'reset, clear  - Fix screen in case of text corruption',
-      'info, i       - Display Iris version and message stats',
+      'freshen, f       - Reload to get any new messages',
+      'reset, clear     - Fix screen in case of text corruption',
+      'info, i          - Display Iris version and message stats',
       '',
       'Full documentation available here:',
       'https://github.com/Calamitous/iris/blob/master/README.md',

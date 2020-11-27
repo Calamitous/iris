@@ -1,6 +1,7 @@
 require 'minitest/autorun'
 require 'mocha/mini_test'
 
+$test_corpus_file = "./tests/iris.messages.json"
 # Setting this before loading the main code file so that the Config contants
 # load correctly.  This will allows the test to pretend that user "jerryberry"
 # is logged in.
@@ -10,7 +11,7 @@ require './iris.rb'
 
 describe Config do
   it 'has the Iris semantic version number' do
-    Config::VERSION.must_match /^\d\.\d\.\d$/
+    Config::VERSION.must_match /^\d\.\d\.\d+$/
   end
 
   it 'has the message file location' do
@@ -81,11 +82,14 @@ describe Corpus do
     end
 
     it 'returns nil if the hash is not found in the corpus' do
-      skip
+      # Corpus.load
       Corpus.find_message_by_hash('NoofMcGoof').must_equal nil
     end
 
-    it 'returns the message associated with the hash if it is found'
+    it 'returns the message associated with the hash if it is found' do
+      Corpus.load
+      Corpus.find_message_by_hash("gpY2WW/jGcH+BODgySCwDANJlIM=").must_equal "Test"
+    end
   end
 
   describe '.find_all_by_parent_hash' do

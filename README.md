@@ -35,7 +35,7 @@ Iris has a readline interface that can be used to navigate the message corpus.
 ### Readline Interface Example
 ```
 %> iris
-Welcome to Iris v. 1.0.10.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
+Welcome to Iris v. 1.0.11.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
@@ -308,7 +308,7 @@ This outputs the current version of Iris, along with messsage, topic, and author
 ```
 jennie_minnie@ctrl-c.club~> info
 
-Iris 1.0.10
+Iris 1.0.11
 13 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -341,7 +341,7 @@ iris --version
 ```
 
 ```
-Iris 1.0.10
+Iris 1.0.11
 ```
 
 ---
@@ -357,7 +357,7 @@ iris --stats
 ```
 
 ```
-Iris 1.0.10
+Iris 1.0.11
 13 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -546,6 +546,7 @@ The one place we're breaking the rules on requiring gems is in the tests.  Mocha
 
 ## Technical Bits
 
+  * [Dependencies](#dependencies)
   * [Conventions](#conventions)
   * [Message Files](#message-files)
   * [Messages](#messages)
@@ -555,6 +556,14 @@ The one place we're breaking the rules on requiring gems is in the tests.  Mocha
     * [Deleted Messages](#deleted-messages)
   * [Topic List](#topic-list)
   * [Replies](#replies)
+
+### Dependencies
+
+While trying to stay reasonably lightweight, Iris does dependend on a few tools being installed:
+
+* `ls` is used to get a list of all the Iris message files on the system.
+* `hostname` is used to find the name of the server Iris is running on.
+* `tput` is used to get the terminal reset command.
 
 ### Conventions
 

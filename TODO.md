@@ -18,13 +18,14 @@
 * Gracefully handle attempt to "r 1 message"
 
 ### Features
-* Add pagiation/less for long message lists
+* Add pagination/less for long message lists
   * https://github.com/Calamitous/iris/issues/1
 * Allow shelling out to editor for message editing
   * https://github.com/Calamitous/iris/issues/2
 * Add local timezone rendering
 * Add "Mark all read" option
 * Add option to mark all messages in a thread as read
+* CLI option to show response count to threads the user authored
 
 ### Tech debt
 * Flesh out tests
@@ -67,6 +68,16 @@
 * JSON -> SSI -> Javascript webreader
 
 # Changelog
+
+## 1.0.11
+* Speed up the topic listing significantly
+* Add 'unread' (short form 'u') to only list topics with unread messages
+* Add 'mark_unread' (short form 'm') to mark topics as read without displaying them
+* Tweaks to help text
+* Default main listing to unread topics instead of listing all topics
+* Updates to the way screen dimensions are calculated
+* Preliminaary work to support pagination
+* Change permissions message from error to warning so it only shows in debug mode
 
 ## 1.0.10
 * ~Fix bug causing system to crash when a user removes read permissions from their directory/iris.messages file~
