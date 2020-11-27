@@ -47,11 +47,13 @@ jimmy_foo@ctrl-c.club>
 ## Commands
 
  * [[t]opics](#topics)
+ * [[u]nread](#unread)
  * [Display topic](#display-topic)
  * [[c]ompose](#compose)
  * [[r]eply](#reply)
  * [[e]dit](#edit)
  * [[d]elete and un[d]elete](#delete)
+ * [[m]ark_read](#mark_read)
  * [[f]reshen](#freshen)
  * [reset OR clear](#reset-or-clear)
  * [[i]nfo](#info)
@@ -81,6 +83,23 @@ jimmy_foo@ctrl-c.club> topics
 
 ---
 
+### [u]nread
+`unread, u    - List all unread topics`
+
+This outputs a list of top-level topics that have not been read, or have unread messages
+
+```
+jimmy_foo@ctrl-c.club> unread
+
+ | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
+
+```
+
+The format of the unread topics list is identical to the format of the [topics](#topics) list
+
+---
+
 ### Display topic
 `# (topic id) - Read specified topic`
 
@@ -107,7 +126,7 @@ It's good to see everyone here!
 ---
 
 ### [c]ompose
-`compose, c    - Add a new topic`
+`compose, c - Add a new topic`
 
 This allows you to add a new top-level topic to the board.  The first line of your new topic will be used as the topic title.
 
@@ -283,6 +302,13 @@ It's not in the docs and my boss is asking.  Any help is appreciated!
   | -----------------------------------------------------------------------------
 
 ```
+
+---
+
+### [m]ark_read
+`mark_read, m   - Mark a topic read`
+
+Mark a topic and all its replies as read without displaying them.
 
 ---
 
