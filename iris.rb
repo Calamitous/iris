@@ -996,6 +996,7 @@ class Interface
   def freshen
     Corpus.load
     Display.say 'Reloaded!'
+    unread
   end
 
   def readline(prompt)
