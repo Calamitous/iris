@@ -23,7 +23,7 @@ At its core, Iris is simply a single, executable Ruby script.  It has been teste
 
 Copy or symlink `iris.rb` somewhere the whole server can use it; `/usr/local/bin` is a good candidate:
 
-```
+```bash
 chmod 755 ./iris.rb
 mv ./iris.rb /usr/local/bin/iris
 ```
@@ -33,7 +33,8 @@ mv ./iris.rb /usr/local/bin/iris
 Iris has a readline interface that can be used to navigate the message corpus.
 
 ### Readline Interface Example
-```
+
+```bash
 %> iris
 Welcome to Iris v. 1.0.11.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
 
@@ -331,7 +332,7 @@ This clears the screen and resets the cursor. If you experience screen corruptio
 
 This outputs the current version of Iris, along with messsage, topic, and author counts.
 
-```
+```bash
 jennie_minnie@ctrl-c.club~> info
 
 Iris 1.0.11
@@ -362,11 +363,11 @@ There are a few options you can pass in from the command-line:
 
 This displays the current version of Iris and exits.
 
-```
+```bash
 iris --version
 ```
 
-```
+```bash
 Iris 1.0.11
 ```
 
@@ -378,11 +379,11 @@ This outputs the current version of Iris, along with messsage, topic, and author
 
 This command does not enter Iris' interactive mode.
 
-```
+```bash
 iris --stats
 ```
 
-```
+```bash
 Iris 1.0.11
 13 topics, 0 unread.
 50 messages, 0 unread.
@@ -419,7 +420,9 @@ This option works in both interactive and non-interactive mode.
 
 ### --test-file/-f
 
-`iris --test-file junk.messages.iris`
+```bash
+iris --test-file junk.messages.iris
+```
 
 This option forces Iris to load the specified message file, instead of scanning the `/home` directory.
 
@@ -567,8 +570,10 @@ Iris must:
 
 The one place we're breaking the rules on requiring gems is in the tests.  Mocha's just too good.  :)  To run the tests, you can install the following (these will end up in your user directory, to minimize the chances of interfering with system gems).
 
-`gem install --user-install minitest`
-`gem install --user-install mocha`
+```bash
+gem install --user-install minitest
+gem install --user-install mocha
+```
 
 ## Technical Bits
 
@@ -607,7 +612,7 @@ In order to operate correctly and safely, this file _must_ be:
 * Non-executable
 * Owned by the user account that will be storing messages for
 
-```
+```bash
 %> ls -la ~/.iris.messages
 -rw-r--r-- 1 jimmy_foo jimmy_foo /home/jimmy_foo/.iris.messages
 ```
@@ -620,7 +625,7 @@ In order to operate correctly and safely, this file _must_ be:
 
 ### Topic List
 
-###Replies
+### Replies
 
 ## License
 GPLv2
