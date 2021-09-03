@@ -17,10 +17,11 @@ class Config
   HOSTNAME     = `hostname -d`.chomp
   AUTHOR       = "#{USER}@#{HOSTNAME}"
   OPTIONS      = %w[
-    --dump
     --debug
+    --dump
     --help
     --interactive
+    --pop
     --stats
     --test-file
     --version
@@ -28,11 +29,12 @@ class Config
     -f
     -h
     -i
+    -p
     -s
     -v
   ]
   INTERACTIVE_OPTIONS    = %w[-i --interactive]
-  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats]
+  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats -p --pop]
   NONFILE_OPTIONS        = %w[-h --help -v --version]
 
   @@debug_mode = false
@@ -643,7 +645,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics unread compose quit freshen reset_display reply edit delete mark_read info}
+  ONE_SHOTS = %w{help topics unread compose quit freshen reset_display reply edit delete mark_read info pop}
   CMD_MAP = {
     't'        => 'topics',
     'topics'   => 'topics',
@@ -671,6 +673,8 @@ class Interface
     'clear'    => 'reset_display',
     'i'        => 'info',
     'info  '   => 'info',
+    'p'        => 'pop',
+    'pop'      => 'pop',
   }
 
   def browsing_handler(line)
@@ -710,6 +714,22 @@ class Interface
   def info
     Display.say
     Interface.info
+    Display.say
+  end
+
+  def self.pop
+    unread_messages = Corpus.unread_messages
+    unread_messages.each { |message| 
+      Display.say message.to_display
+      new_reads = (Corpus.read_hashes + [message.hash] + message.replies.map(&:hash)).uniq.sort
+      IrisFile.write_read_file(new_reads.to_json)
+      Corpus.load
+    }
+  end
+
+  def pop
+    Display.say
+    Interface.pop
     Display.say
   end
 
@@ -987,6 +1007,7 @@ class Interface
       'freshen, f       - Reload to get any new messages',
       'reset, clear     - Fix screen in case of text corruption',
       'info, i          - Display Iris version and message stats',
+      'pop, p           - Pop unread messages',
       'quit, q          - Quit Iris',
       '',
       'Full documentation available here:',
@@ -1033,6 +1054,7 @@ class CLI
       '--help, -h        - Display this text.',
       '--version, -v     - Display the current version of Iris.',
       '--stats, -s       - Display Iris version and message stats.',
+      '--pop, -p         - Pop unread messages.',
       '--interactive, -i - Enter interactive mode (default)',
       '--dump, -d        - Dump entire message corpus out.',
       '--test-file <filename>, -f  <filename> - Use the specified test file for messages.',
@@ -1060,6 +1082,11 @@ class CLI
 
     if (args & %w{-d --dump}).any?
       puts Corpus.to_json
+      exit(0)
+    end
+
+    if (args & %w{-p --pop}).any?
+      Interface.pop
       exit(0)
     end
 
