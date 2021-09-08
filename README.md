@@ -40,7 +40,7 @@ Welcome to Iris v. 1.0.11.  Type "help" for a list of commands.; Ctrl-D or 'quit
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for imp...
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 jimmy_foo@ctrl-c.club>
 ```
@@ -50,11 +50,13 @@ jimmy_foo@ctrl-c.club>
  * [[t]opics](#topics)
  * [[u]nread](#unread)
  * [Display topic](#display-topic)
+ * [[n]ext](#next)
  * [[c]ompose](#compose)
  * [[r]eply](#reply)
  * [[e]dit](#edit)
  * [[d]elete and un[d]elete](#delete)
  * [[m]ark_read](#mark_read)
+ * [mark_all_read](#mark_all_read)
  * [[f]reshen](#freshen)
  * [reset OR clear](#reset-or-clear)
  * [[i]nfo](#info)
@@ -72,7 +74,7 @@ jimmy_foo@ctrl-c.club> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 ```
 
@@ -93,7 +95,7 @@ This outputs a list of top-level topics that have not been read, or have unread 
 jimmy_foo@ctrl-c.club> unread
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 ```
 
@@ -110,7 +112,7 @@ jimmy_foo@ctrl-c.club> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 jimmy_foo@ctrl-c.club> 1
 *** [1] On 2018-01-24T05:49:53Z, jimmy_foo@ctrl-c.club posted...-----------------
@@ -120,6 +122,32 @@ It's good to see everyone here!
 
   | === [M2] On 2018-01-30T22:50:38Z, jerry_berry@ctrl-c.club replied...---------
   | Thanks!
+  | -----------------------------------------------------------------------------
+
+```
+
+---
+
+### [n]ext
+`next, n - Read the next unread topic`
+
+This command displays the first topic which is unread or has unread replies.
+```
+jimmy_foo@ctrl-c.club> topics
+
+ | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
+ |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
+ |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+
+jimmy_foo@ctrl-c.club> next
+*** [2] On 2018-01-24T16:13:05Z, jerry_berry@ctrl-c.club posted...---------------
+Suggestions for a tilde home?
+
+I'm trying to decide on a new place in the tildeverse to call home.  Any ideas?
+---------------------------------------------------------------------------------
+
+  | === [M4] On 2018-01-30T22:50:38Z, jimmy_foo@ctrl-c.club replied...-----------
+  | Have you considered https://ctrl-c.club?
   | -----------------------------------------------------------------------------
 
 ```
@@ -149,7 +177,7 @@ jimmy_foo@ctrl-c.club~> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 |   | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for i...
+ |  2 |   | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
  |  3 | 1 | 2018-01-23T00:13:44Z | jimmy_foo@ctrl-c.club   | How do I spoo the...
 ```
 
@@ -313,6 +341,13 @@ Mark a topic and all its replies as read without displaying them.
 
 ---
 
+### [m]ark_all_read
+`mark_all_read   - Mark all messages as read`
+
+Marks all topics and their replies as read without displaying them.
+
+---
+
 ### [f]reshen
 `freshen, f   - Reload to get any new messages`
 
@@ -355,6 +390,7 @@ There are a few options you can pass in from the command-line:
  * [--version, -v](#--version-v)
  * [--stats, -s](#--stats-s)
  * [--interactive, -i](#--interactive-i)
+ * [--mark-all-read](#--mark-all-read)
  * [--dump, -d](#--dump-d)
  * [--help, -h](#--help-h)
  * [--debug](#--debug)
@@ -397,6 +433,13 @@ Iris 1.0.11
 This command enters Iris' interactive mode, the default mode with which users can compose and read topics and replies.
 
 This is the mode that Iris enters if no options are passed on the command-line.
+
+---
+
+
+### --mark-all-read
+
+This command simply marks every message as read in Iris.  It's a quick way to get to "Irisbox Zero".
 
 ---
 
