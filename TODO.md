@@ -10,22 +10,24 @@
 * Flesh out technical sections
 
 ### Bugs
+* Replying implicitly to 24 replied to 6 instead-- remove implicit reply?
+* Exclude user''s own messages from "unread" count
 * Is `Time.now.utc.iso8601` working as expected?
   * Fix bug when people are posting from different time zones
   * Fix message ordering when editing/deleting multiple messages
-* Exclude user''s own messages from "unread" count
-* Replying implicitly to 24 replied to 6 instead
 * Gracefully handle attempt to "r 1 message"
 
 ### Features
-* Add pagination/less for long message lists
-  * https://github.com/Calamitous/iris/issues/1
+* Add "unread" marker to topic replies
 * Allow shelling out to editor for message editing
   * https://github.com/Calamitous/iris/issues/2
-* Add local timezone rendering
 * Add "Mark all read" option
+* Add pagination/less for long message lists
+  * https://github.com/Calamitous/iris/issues/1
+* Add local timezone rendering
 * Add option to mark all messages in a thread as read
 * CLI option to show response count to threads the user authored
+* Search/regex function to find all messages
 
 ### Tech debt
 * Flesh out tests
