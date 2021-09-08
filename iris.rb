@@ -249,6 +249,12 @@ class Corpus
   def self.size
     @@corpus.size
   end
+
+  def self.mark_as_read(hashes)
+    new_reads = (Corpus.read_hashes + hashes).uniq.sort
+    IrisFile.write_read_file(new_reads.to_json)
+    Corpus.load
+  end
 end
 
 class IrisFile
@@ -645,35 +651,37 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics unread compose quit freshen reset_display reply edit delete mark_read info mark_all_read}
+  ONE_SHOTS = %w{ compose delete edit freshen help info mark_all_read mark_read next quit reply reset_display topics unread }
   CMD_MAP = {
+    '?'              => 'help',
+    'c'              => 'compose',
+    'clear'          => 'reset_display',
+    'compose'        => 'compose',
+    'd'              => 'delete',
+    'delete'         => 'delete',
+    'e'              => 'edit',
+    'edit'           => 'edit',
+    'f'              => 'freshen',
+    'freshen'        => 'freshen',
+    'h'              => 'help',
+    'help'           => 'help',
+    'i'              => 'info',
+    'info  '         => 'info',
+    'm'              => 'mark_read',
+    'mark'           => 'mark_read',
+    'mark_all_read'  => 'mark_all_read',
+    'n'              => 'next',
+    'next'           => 'next',
+    'q'              => 'quit',
+    'quit'           => 'quit',
+    'r'              => 'reply',
+    'reply'          => 'reply',
+    'reset'          => 'reset_display',
     't'              => 'topics',
     'topics'         => 'topics',
     'u'              => 'unread',
-    'unread'         => 'unread',
-    'm'              => 'mark_read',
-    'mark'           => 'mark_read',
-    'c'              => 'compose',
-    'compose'        => 'compose',
-    'h'              => 'help',
-    '?'              => 'help',
-    'help'           => 'help',
-    'r'              => 'reply',
-    'reply'          => 'reply',
-    'e'              => 'edit',
-    'edit'           => 'edit',
-    'd'              => 'delete',
-    'delete'         => 'delete',
     'undelete'       => 'delete',
-    'q'              => 'quit',
-    'quit'           => 'quit',
-    'freshen'        => 'freshen',
-    'f'              => 'freshen',
-    'reset'          => 'reset_display',
-    'clear'          => 'reset_display',
-    'i'              => 'info',
-    'info  '         => 'info',
-    'mark_all_read'  => 'mark_all_read',
+    'unread'         => 'unread',
   }
 
   def browsing_handler(line)
@@ -717,9 +725,7 @@ class Interface
   end
 
   def self.mark_all_read
-    new_reads = Corpus.read_hashes + Corpus.unread_messages.map(&:hash)
-    IrisFile.write_read_file(new_reads.to_json)
-    Corpus.load
+    mark_as_read(Corpus.unread_messages.map(&:hash))
   end
 
   def mark_all_read
@@ -732,6 +738,23 @@ class Interface
     @mode = :composing
     @text_buffer = ''
     Display.say 'Writing a new topic.  Type a period on a line by itself to end message.'
+  end
+
+  def next
+    Display.say
+
+    if Corpus.unread_topics.size == 0
+      Display.say "{gvi You're all caught up!  No new topics to read.}"
+      return
+    end
+
+    message = Corpus.unread_topics.first
+    @reply_topic = message.hash
+
+    Display.say message.to_topic_display
+    Display.say
+
+    Corpus.mark_as_read([message.hash] + message.replies.map(&:hash))
   end
 
   def reply(topic_id = @reply_topic)
@@ -802,9 +825,7 @@ class Interface
       return
     end
 
-    new_reads = (Corpus.read_hashes + [message.hash] + message.replies.map(&:hash)).uniq.sort
-    IrisFile.write_read_file(new_reads.to_json)
-    Corpus.load
+    Corpus.mark_as_read([message.hash] + message.replies.map(&:hash))
   end
 
   def delete(message_id = nil)
@@ -917,9 +938,7 @@ class Interface
       Display.say msg.to_topic_display
       Display.say
 
-      new_reads = (Corpus.read_hashes + [msg.hash] + msg.replies.map(&:hash)).uniq.sort
-      IrisFile.write_read_file(new_reads.to_json)
-      Corpus.load
+      Corpus.mark_as_read([msg.hash] + msg.replies.map(&:hash))
     else
       Display.say 'Could not find a topic with that ID'
     end
@@ -990,6 +1009,7 @@ class Interface
       'topics, t        - List all topics',
       'unread, u        - List all topics with unread messages',
       '# (topic id)     - Read specified topic',
+      'next, n          - Read the next unread topic',
       'mark_read #, m # - Mark the associated topic as read',
       'help, h, ?       - Display this text',
       '',
