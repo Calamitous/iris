@@ -232,6 +232,7 @@ class Corpus
     @@unread_messages ||= @@corpus
       .select { |message| message.show_me? }
       .reject{ |m| @@my_reads.include? m.hash }
+      .reject{ |m| @@my_corpus.map(&:hash).include? m.hash }
   end
 
   def self.unread_message_hashes
@@ -725,7 +726,7 @@ class Interface
   end
 
   def self.mark_all_read
-    mark_as_read(Corpus.unread_messages.map(&:hash))
+    Corpus.mark_as_read(Corpus.unread_messages.map(&:hash))
   end
 
   def mark_all_read
