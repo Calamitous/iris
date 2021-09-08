@@ -841,6 +841,7 @@ class Interface
   end
 
   def replying_handler(line)
+    line.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
     if line !~ /^\.$/
       if @text_buffer.empty?
         @text_buffer = line
