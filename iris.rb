@@ -21,7 +21,7 @@ class Config
     --dump
     --help
     --interactive
-    --pop
+    --mark-all-read
     --stats
     --test-file
     --version
@@ -34,7 +34,7 @@ class Config
     -v
   ]
   INTERACTIVE_OPTIONS    = %w[-i --interactive]
-  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats -p --pop]
+  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats --mark-all-read]
   NONFILE_OPTIONS        = %w[-h --help -v --version]
 
   @@debug_mode = false
@@ -645,36 +645,35 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{help topics unread compose quit freshen reset_display reply edit delete mark_read info pop}
+  ONE_SHOTS = %w{help topics unread compose quit freshen reset_display reply edit delete mark_read info mark_all_read}
   CMD_MAP = {
-    't'        => 'topics',
-    'topics'   => 'topics',
-    'u'        => 'unread',
-    'unread'   => 'unread',
-    'm'        => 'mark_read',
-    'mark'     => 'mark_read',
-    'c'        => 'compose',
-    'compose'  => 'compose',
-    'h'        => 'help',
-    '?'        => 'help',
-    'help'     => 'help',
-    'r'        => 'reply',
-    'reply'    => 'reply',
-    'e'        => 'edit',
-    'edit'     => 'edit',
-    'd'        => 'delete',
-    'delete'   => 'delete',
-    'undelete' => 'delete',
-    'q'        => 'quit',
-    'quit'     => 'quit',
-    'freshen'  => 'freshen',
-    'f'        => 'freshen',
-    'reset'    => 'reset_display',
-    'clear'    => 'reset_display',
-    'i'        => 'info',
-    'info  '   => 'info',
-    'p'        => 'pop',
-    'pop'      => 'pop',
+    't'              => 'topics',
+    'topics'         => 'topics',
+    'u'              => 'unread',
+    'unread'         => 'unread',
+    'm'              => 'mark_read',
+    'mark'           => 'mark_read',
+    'c'              => 'compose',
+    'compose'        => 'compose',
+    'h'              => 'help',
+    '?'              => 'help',
+    'help'           => 'help',
+    'r'              => 'reply',
+    'reply'          => 'reply',
+    'e'              => 'edit',
+    'edit'           => 'edit',
+    'd'              => 'delete',
+    'delete'         => 'delete',
+    'undelete'       => 'delete',
+    'q'              => 'quit',
+    'quit'           => 'quit',
+    'freshen'        => 'freshen',
+    'f'              => 'freshen',
+    'reset'          => 'reset_display',
+    'clear'          => 'reset_display',
+    'i'              => 'info',
+    'info  '         => 'info',
+    'mark_all_read'  => 'mark_all_read',
   }
 
   def browsing_handler(line)
@@ -717,20 +716,16 @@ class Interface
     Display.say
   end
 
-  def self.pop
-    unread_messages = Corpus.unread_messages
-    unread_messages.each { |message| 
-      Display.say message.to_display
-      new_reads = (Corpus.read_hashes + [message.hash] + message.replies.map(&:hash)).uniq.sort
-      IrisFile.write_read_file(new_reads.to_json)
-      Corpus.load
-    }
+  def self.mark_all_read
+    new_reads = Corpus.read_hashes + Corpus.unread_messages.map(&:hash)
+    IrisFile.write_read_file(new_reads.to_json)
+    Corpus.load
   end
 
-  def pop
-    Display.say
-    Interface.pop
-    Display.say
+  def mark_all_read
+    Display.say "Marking all messages as read..."
+    Interface.mark_all_read
+    Display.say "Done!"
   end
 
   def compose
@@ -1007,7 +1002,7 @@ class Interface
       'freshen, f       - Reload to get any new messages',
       'reset, clear     - Fix screen in case of text corruption',
       'info, i          - Display Iris version and message stats',
-      'pop, p           - Pop unread messages',
+      'mark_all_read    - Mark all messages as read',
       'quit, q          - Quit Iris',
       '',
       'Full documentation available here:',
@@ -1054,7 +1049,7 @@ class CLI
       '--help, -h        - Display this text.',
       '--version, -v     - Display the current version of Iris.',
       '--stats, -s       - Display Iris version and message stats.',
-      '--pop, -p         - Pop unread messages.',
+      '--mark-all-read   - Mark all messages as read.',
       '--interactive, -i - Enter interactive mode (default)',
       '--dump, -d        - Dump entire message corpus out.',
       '--test-file <filename>, -f  <filename> - Use the specified test file for messages.',
@@ -1085,13 +1080,14 @@ class CLI
       exit(0)
     end
 
-    if (args & %w{-p --pop}).any?
-      Interface.pop
+    if (args & %w{--mark-all-read}).any?
+      Interface.mark_all_read
       exit(0)
     end
 
     Display.say "Unrecognized option(s) #{args.join(', ')}"
     Display.say "Try -h for help"
+    exit(1)
   end
 end
 
