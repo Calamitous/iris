@@ -8,7 +8,7 @@ require 'time'
 # require 'pry' # Only needed for debugging
 
 class Config
-  VERSION      = '1.0.11'
+  VERSION      = '1.0.12'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   IRIS_SCRIPT  = __FILE__

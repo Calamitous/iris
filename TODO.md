@@ -11,7 +11,6 @@
 
 ### Bugs
 * Replying implicitly to 24 replied to 6 instead-- remove implicit reply?
-* Exclude user''s own messages from "unread" count
 * Is `Time.now.utc.iso8601` working as expected?
   * Fix bug when people are posting from different time zones
   * Fix message ordering when editing/deleting multiple messages
@@ -21,11 +20,9 @@
 * Add "unread" marker to topic replies
 * Allow shelling out to editor for message editing
   * https://github.com/Calamitous/iris/issues/2
-* Add "Mark all read" option
 * Add pagination/less for long message lists
   * https://github.com/Calamitous/iris/issues/1
 * Add local timezone rendering
-* Add option to mark all messages in a thread as read
 * CLI option to show response count to threads the user authored
 * Search/regex function to find all messages
 
@@ -70,6 +67,12 @@
 * JSON -> SSI -> Javascript webreader
 
 # Changelog
+
+## 1.0.12
+* Add Asara's "mark all read" functionality
+* Fix(?) bug with handling broken UTF-8 characters
+* Add feature to read the next unread topic ("next")
+* Exclude user''s own messages from "unread" count
 
 ## 1.0.11
 * Speed up the topic listing significantly
