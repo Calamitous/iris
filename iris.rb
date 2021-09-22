@@ -550,7 +550,9 @@ class Message
   # Find all messages replying to the current topic, including replies to topics
   # which have been edited.
   def replies
-     (Corpus.find_all_by_parent_hash(hash) + ((edit_predecessor && edit_predecessor.replies) || [])).compact
+    all_replies = Corpus.find_all_by_parent_hash(hash)
+    all_replies += ((edit_predecessor && edit_predecessor.replies) || [])
+    all_replies.compact.sort_by{ |reply| Corpus.index_of(reply) }
   end
 
   def id
