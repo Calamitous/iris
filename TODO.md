@@ -68,6 +68,9 @@
 
 # Changelog
 
+## 1.0.13
+* Fix reply ordering bug
+
 ## 1.0.12
 * Add Asara's "mark all read" functionality
 * Fix(?) bug with handling broken UTF-8 characters
