@@ -36,11 +36,11 @@ Iris has a readline interface that can be used to navigate the message corpus.
 
 ```bash
 %> iris
-Welcome to Iris v. 1.0.13.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
+Welcome to Iris v. 1.1.0.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+ |  2 | 1 | 2018-01-24T16:22:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 jimmy_foo@ctrl-c.club>
 ```
@@ -74,7 +74,7 @@ jimmy_foo@ctrl-c.club> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+ |  2 | 1 | 2018-01-24T16:22:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 ```
 
@@ -95,7 +95,7 @@ This outputs a list of top-level topics that have not been read, or have unread 
 jimmy_foo@ctrl-c.club> unread
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+ |  2 | 1 | 2018-01-24T16:22:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 ```
 
@@ -112,7 +112,7 @@ jimmy_foo@ctrl-c.club> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+ |  2 | 1 | 2018-01-24T16:22:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 jimmy_foo@ctrl-c.club> 1
 *** [1] On 2018-01-24T05:49:53Z, jimmy_foo@ctrl-c.club posted...-----------------
@@ -137,10 +137,10 @@ jimmy_foo@ctrl-c.club> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 | 1 | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+ |  2 | 1 | 2018-01-24T16:22:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
 
 jimmy_foo@ctrl-c.club> next
-*** [2] On 2018-01-24T16:13:05Z, jerry_berry@ctrl-c.club posted...---------------
+*** [2] On 2018-01-24T16:22:05Z, jerry_berry@ctrl-c.club posted...---------------
 Suggestions for a tilde home?
 
 I'm trying to decide on a new place in the tildeverse to call home.  Any ideas?
@@ -177,8 +177,8 @@ jimmy_foo@ctrl-c.club~> topics
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
- |  2 |   | 2018-01-24T16:13:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
- |  3 | 1 | 2018-01-23T00:13:44Z | jimmy_foo@ctrl-c.club   | How do I spoo the...
+ |  2 |   | 2018-01-24T16:22:05Z | jerry_berry@ctrl-c.club | Suggestions for a...
+ |  3 | 1 | 2018-01-23T00:22:44Z | jimmy_foo@ctrl-c.club   | How do I spoo the...
 ```
 
 ---
@@ -202,7 +202,7 @@ Reply saved!
 
 jennie_minnie@ctrl-c.club~> 3
 
-*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+*** [3] On 2018-01-23T00:22:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
@@ -237,7 +237,7 @@ After an edit, a status flag will appear on the message, letting others know the
 ```
 jennie_minnie@ctrl-c.club~> 3
 
-*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+*** [3] On 2018-01-23T00:22:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ Message edited!
 
 jennie_minnie@ctrl-c.club~> 3
 
-*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+*** [3] On 2018-01-23T00:22:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ The `undelete` command is provided as a mnemonic convenience; it is identical in
 ```
 jennie_minnie@ctrl-c.club~> 3
 
-*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+*** [3] On 2018-01-23T00:22:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
@@ -305,7 +305,7 @@ Deleted message 'Simple, you just boondoggle the flibbertigibbet.  That shoul...
 
 jennie_minnie@ctrl-c.club~> 3
 
-*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+*** [3] On 2018-01-23T00:22:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
@@ -318,7 +318,7 @@ Undeleted message 'Simple, you just boondoggle the flibbertigibbet.  That sho...
 
 jennie_minnie@ctrl-c.club~> 3
 
-*** [3] On 2018-01-23T00:13:44Z, jimmy_foo@ctrl-c.club posted...-----------------
+*** [3] On 2018-01-23T00:22:44Z, jimmy_foo@ctrl-c.club posted...-----------------
 How do I spoo the fleem?
 It's not in the docs and my boss is asking.  Any help is appreciated!
 ---------------------------------------------------------------------------------
@@ -368,8 +368,8 @@ This outputs the current version of Iris, along with messsage, topic, and author
 ```bash
 jennie_minnie@ctrl-c.club~> info
 
-Iris 1.0.13
-13 topics, 0 unread.
+Iris 1.1.0
+22 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
 ```
@@ -402,7 +402,7 @@ iris --version
 ```
 
 ```bash
-Iris 1.0.13
+Iris 1.1.0
 ```
 
 ---
@@ -418,8 +418,8 @@ iris --stats
 ```
 
 ```bash
-Iris 1.0.13
-13 topics, 0 unread.
+Iris 1.1.0
+22 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
 ```
