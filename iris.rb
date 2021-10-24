@@ -17,26 +17,6 @@ class Config
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
   AUTHOR       = "#{USER}@#{HOSTNAME}"
-  OPTIONS      = %w[
-    --debug
-    --dump
-    --help
-    --interactive
-    --mark-all-read
-    --stats
-    --test-file
-    --version
-    -d
-    -f
-    -h
-    -i
-    -p
-    -s
-    -v
-  ]
-  INTERACTIVE_OPTIONS    = %w[-i --interactive]
-  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats --mark-all-read]
-  NONFILE_OPTIONS        = %w[-h --help -v --version]
 
   @@debug_mode = false
 
@@ -1063,12 +1043,16 @@ class CLI
 end
 
 class Startupper
+  INTERACTIVE_OPTIONS    = %w[-i --interactive]
+  NONINTERACTIVE_OPTIONS = %w[-d --dump -h --help -v --version -s --stats --mark-all-read]
+  NONFILE_OPTIONS        = %w[-h --help -v --version]
+
   def initialize(args)
-    perform_file_checks unless Config::NONFILE_OPTIONS.include?(args)
+    perform_file_checks unless NONFILE_OPTIONS.include?(args)
 
     load_corpus(args)
 
-    is_interactive = (args & Config::NONINTERACTIVE_OPTIONS).none? || (args & Config::INTERACTIVE_OPTIONS).any?
+    is_interactive = (args & NONINTERACTIVE_OPTIONS).none? || (args & INTERACTIVE_OPTIONS).any?
 
     Config.enable_debug_mode if (args & %w{--debug}).any?
 
