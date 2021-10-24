@@ -4,6 +4,7 @@ require 'digest'
 require 'etc'
 require 'json'
 require 'readline'
+require 'tempfile'
 require 'time'
 # require 'pry' # Only needed for debugging
 
@@ -687,21 +688,6 @@ class Interface
     'unread'         => 'unread',
   }
 
-  def browsing_handler(line)
-    tokens = line.split(/\s/)
-    cmd = tokens.first
-    cmd = CMD_MAP[cmd] || cmd
-    return self.send(cmd.to_sym) if ONE_SHOTS.include?(cmd) && tokens.length == 1
-    return show_topic(cmd) if cmd =~ /^\d+$/
-    # If we've gotten this far, we must have args. Let's handle 'em.
-    arg = tokens.last
-    return reply(arg)  if cmd == 'reply'
-    return edit(arg)   if cmd == 'edit'
-    return delete(arg) if cmd == 'delete'
-    return mark_read(arg) if cmd == 'mark_read'
-    Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
-  end
-
   def reset_display
     Display.say `tput reset`.chomp
   end
@@ -738,9 +724,16 @@ class Interface
   end
 
   def compose
-    @mode = :composing
-    @text_buffer = ''
-    Display.say 'Writing a new topic.  Type a period on a line by itself to end message.'
+    Display.say 'Writing a new topic.'
+
+    message_text = external_editor()
+
+    if message_text.length <= 1
+      Display.say 'Empty message, discarding...'
+    else
+      Message.new(message_text).save!
+      Display.say 'Topic saved!'
+    end
   end
 
   def next
@@ -767,18 +760,24 @@ class Interface
     end
 
     if parent = (Corpus.find_topic_by_id(topic_id) || Corpus.find_topic_by_hash(topic_id))
-      @reply_topic = parent.hash
+      reply_topic = parent.hash
     else
       Display.say "Could not reply; unable to find a topic with ID '#{topic_id}'"
       return
     end
 
-    @mode = :replying
-    @text_buffer = ''
     title = Corpus.find_topic_by_hash(parent.hash).truncated_message(Display::TITLE_WIDTH)
     Display.say
     Display.say "Writing a reply to topic '#{title}'"
-    Display.say 'Type a period on a line by itself to end message.'
+
+    message_text = external_editor()
+
+    if message_text.length <= 1
+      Display.say 'Empty message, discarding...'
+    else
+      Message.new(message_text, reply_topic).save!
+      Display.say 'Reply saved!'
+    end
   end
 
   def edit(message_id = nil)
@@ -803,13 +802,18 @@ class Interface
       return
     end
 
-    @mode = :editing
-    @old_message = message
-    @text_buffer = ''
     title = message.truncated_message(Display::TITLE_WIDTH)
     Display.say
     Display.say "Editing message '#{title}'"
-    Display.say 'Type a period on a line by itself to end message.'
+
+    message_text = external_editor(message.message)
+
+    if message_text.length <= 1
+      Display.say 'Empty message, not updating...'
+    else
+      Message.edit(message_text, message)
+      Display.say 'Message edited!'
+    end
   end
 
   def mark_read(message_id = nil)
@@ -864,71 +868,37 @@ class Interface
     end
   end
 
-  def replying_handler(line)
-    line.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
-    if line !~ /^\.$/
-      if @text_buffer.empty?
-        @text_buffer = line
-      else
-        @text_buffer = [@text_buffer, line].join("\n")
-      end
-      return
+  def external_editor(preload_text = nil)
+    tf = Tempfile.new('iris')
+
+    if preload_text
+      tf.write(preload_text)
+      tf.flush
     end
 
-    if @text_buffer.length <= 1
-      Display.say 'Empty message, discarding...'
-    else
-      Message.new(@text_buffer, @reply_topic).save!
-      Display.say 'Reply saved!'
-    end
-    @reply_topic = nil
-    @mode = :browsing
-  end
+    raise "No `$EDITOR` environment variable set!" unless ENV['EDITOR'] && ENV['EDITOR'].length > 0
 
-  def editing_handler(line)
-    if line !~ /^\.$/
-      if @text_buffer.empty?
-        @text_buffer = line
-      else
-        @text_buffer = [@text_buffer, line].join("\n")
-      end
-      return
-    end
+    system("#{ENV['EDITOR']} #{tf.path}")
+    tf.rewind
+    message_text = tf.read
+    tf.unlink
 
-    if @text_buffer.length <= 1
-      Display.say 'Empty message, not updating...'
-    else
-      Message.edit(@text_buffer, @old_message)
-      Display.say 'Message edited!'
-    end
-    @reply_topic = nil
-    @mode = :browsing
-  end
-
-  def composing_handler(line)
-    if line !~ /^\.$/
-      if @text_buffer.empty?
-        @text_buffer = line
-      else
-        @text_buffer = [@text_buffer, line].join("\n")
-      end
-      return
-    end
-
-    if @text_buffer.length <= 1
-      Display.say 'Empty message, discarding...'
-    else
-      Message.new(@text_buffer).save!
-      Display.say 'Topic saved!'
-    end
-    @mode = :browsing
+    message_text
   end
 
   def handle(line)
-    return browsing_handler(line)  if @mode == :browsing
-    return composing_handler(line) if @mode == :composing
-    return replying_handler(line)  if @mode == :replying
-    return editing_handler(line)   if @mode == :editing
+    tokens = line.split(/\s/)
+    cmd = tokens.first
+    cmd = CMD_MAP[cmd] || cmd
+    return self.send(cmd.to_sym) if ONE_SHOTS.include?(cmd) && tokens.length == 1
+    return show_topic(cmd) if cmd =~ /^\d+$/
+    # If we've gotten this far, we must have args. Let's handle 'em.
+    arg = tokens.last
+    return reply(arg)  if cmd == 'reply'
+    return edit(arg)   if cmd == 'edit'
+    return delete(arg) if cmd == 'delete'
+    return mark_read(arg) if cmd == 'mark_read'
+    Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
   end
 
   def show_topic(num)
@@ -956,15 +926,11 @@ class Interface
   end
 
   def prompt
-    return 'new~> '   if @mode == :composing
-    return 'reply~> ' if @mode == :replying
-    return 'edit~> '  if @mode == :editing
     "#{Config::AUTHOR}~> "
   end
 
   def initialize(args)
     @history_loaded = false
-    @mode = :browsing
 
     Display.say "Welcome to Iris v#{Config::VERSION}.  Type 'help' for a list of commands; Ctrl-D or 'quit' to leave."
     unread
