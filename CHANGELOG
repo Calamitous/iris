@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+* Iris now composes messages with $EDITOR instead of using an internal editor
+* Remove (broken) feature that automatically selects a reply when not provided with a topic ID
+* Expand and clean up tests
+* Remove dead code
+* Move CHANGELOG out of the TODO file and into its own file
+
 ## 1.0.13
 * Fix reply ordering bug
 
