@@ -159,13 +159,13 @@ I'm trying to decide on a new place in the tildeverse to call home.  Any ideas?
 
 This allows you to add a new top-level topic to the board.  The first line of your new topic will be used as the topic title.
 
-The line editor is quite basic.  Enter your message, line-by-line, and type a single period on a line by itself to end the message.
+Iris will allow you to type in your message in the editor you have defined in your shell with the `$EDITOR` environment variable.
 
 If you post an empty message, the system will discard it.
 
 ```
 jimmy_foo@ctrl-c.club~> compose
-Writing a new topic.  Type a period on a line by itself to end message.
+Writing a new topic.
 
 new~> How do I spoo the fleem?
 new~> It's not in the docs and my boss is asking.  Any help is appreciated!
@@ -188,14 +188,13 @@ jimmy_foo@ctrl-c.club~> topics
 
 Replies are responses to a specific topic -- they only appear when displaying the topic.
 
-The line editor is quite basic.  Enter your message, line-by-line, and type a single period on a line by itself to end the message.
+Iris will allow you to type in your message in the editor you have defined in your shell with the `$EDITOR` environment variable.
 
 If you post an empty message, the system will discard it.
 
 ```
 jennie_minnie@ctrl-c.club~> reply 3
 Writing a reply to topic 'How do I spoo the fleem?'.
-Type a period on a line by itself to end message.
 
 reply~> Simple, you just boondoggle the flibbertigibbet.  That should be in the manual.
 reply~> .
@@ -229,7 +228,7 @@ A topic ID will always be strictly numeric, "3" in the following example.
 
 The message or topic ID can be found in square brackets in the informational text above each message.
 
-The line editor is quite basic.  Enter your edited message, line-by-line, and type a single period on a line by itself to end the message.
+Iris will allow you to type in your message in the editor you have defined in your shell with the `$EDITOR` environment variable.
 
 If you post an empty message, the system will discard it and the edit will be ignored.
 
@@ -250,7 +249,6 @@ It's not in the docs and my boss is asking.  Any help is appreciated!
 
 jennie_minnie@ctrl-c.club~> edit M5
 Editing message 'Simple, you just boondoggle the flibbertigibbet.  That shoul...'
-Type a period on a line by itself to end message.
 
 edit~> Simple, you just boondoggle the flibbertigibbet.  That's in the manual on page 45.
 edit~> .
