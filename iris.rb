@@ -137,8 +137,8 @@ class Corpus
       @@corpus = Config.find_files.map { |filepath| IrisFile.load_messages(filepath) }.flatten.sort_by(&:timestamp)
     end
 
-    @@my_corpus = IrisFile.load_messages.sort_by(&:timestamp)
-    @@my_reads  = IrisFile.load_reads
+    @@my_corpus      = IrisFile.load_messages.sort_by(&:timestamp)
+    @@my_read_hashes = IrisFile.load_reads
 
     @@unread_messages = nil
 
@@ -157,10 +157,6 @@ class Corpus
     @@corpus.to_json
   end
 
-  def self.all
-    @@corpus
-  end
-
   def self.edited_hashes
     @@edited_hashes
   end
@@ -169,16 +165,16 @@ class Corpus
     @@topics
   end
 
+  def self.authors
+    @@corpus.map(&:author).uniq.sort
+  end
+
   def self.mine
     @@my_corpus
   end
 
   def self.is_mine?(message)
     @@my_corpus.map(&:hash).include? message.hash
-  end
-
-  def self.is_topic?(message)
-    @@topics.map(&:hash).include? message.hash
   end
 
   def self.index_of(message)
@@ -193,25 +189,20 @@ class Corpus
     return nil unless hash
     index = @@all_hash_to_index[hash]
     return nil unless index
-    all[index]
-  end
-
-  def self.has_edit_hash(hash)
-    return nil unless hash
-    Corpus.all.map(&:edit_hash).include?(hash)
+    @@corpus[index]
   end
 
   def self.find_all_by_parent_hash(hash)
     return [] unless hash
     indexes = @@all_parent_hash_to_index[hash]
     return [] unless indexes
-    indexes.map{ |idx| all[idx] }.compact.select(&:show_me?)
+    indexes.map{ |idx| @@corpus[idx] }.compact.select(&:show_me?)
   end
 
   def self.find_topic_by_id(topic_lookup)
     return nil unless topic_lookup
     index = topic_lookup.to_i - 1
-    topics[index] if index >= 0 && index < topics.length
+    @@topics[index] if index >= 0 && index < @@topics.length
   end
 
   def self.find_message_by_id(message_lookup)
@@ -225,19 +216,11 @@ class Corpus
     find_message_by_hash(topic_lookup)
   end
 
-  def self.read_hashes
-    @@my_reads
-  end
-
   def self.unread_messages
     @@unread_messages ||= @@corpus
       .select { |message| message.show_me? }
-      .reject{ |m| @@my_reads.include? m.hash }
+      .reject{ |m| @@my_read_hashes.include? m.hash }
       .reject{ |m| @@my_corpus.map(&:hash).include? m.hash }
-  end
-
-  def self.unread_message_hashes
-    self.unread_messages.map(&:hash)
   end
 
   def self.unread_topics
@@ -253,7 +236,7 @@ class Corpus
   end
 
   def self.mark_as_read(hashes)
-    new_reads = (Corpus.read_hashes + hashes).uniq.sort
+    new_reads = (@@my_read_hashes + hashes).uniq.sort
     IrisFile.write_read_file(new_reads.to_json)
     Corpus.load
   end
@@ -561,7 +544,7 @@ class Message
   end
 
   def topic_id
-    return nil unless Corpus.is_topic?(self)
+    return nil unless self.is_topic?
     Corpus.topic_index_of(self) + 1
   end
 
@@ -635,7 +618,7 @@ class Display
   end
 
   def self.topic_author_width
-    Corpus.topics.map(&:author).map(&:length).max || 1
+    Corpus.authors.map(&:length).max || 1
   end
 
   def self.print_index(index)
@@ -697,7 +680,7 @@ class Interface
     unread_topic_count   = Corpus.unread_topics.size
     message_count        = Corpus.size
     unread_message_count = Corpus.unread_messages.size
-    author_count         = Corpus.all.map(&:author).uniq.size
+    author_count         = Corpus.authors.size
 
     Display.flowerbox(
       "Iris #{Config::VERSION}",
