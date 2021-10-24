@@ -655,7 +655,7 @@ class Display
 end
 
 class Interface
-  ONE_SHOTS = %w{ compose delete edit freshen help info mark_all_read mark_read next quit reply reset_display topics unread }
+  ONE_SHOTS = %w{ compose delete edit freshen help info mark_all_read mark_read next quit reset_display topics unread }
   CMD_MAP = {
     '?'              => 'help',
     'c'              => 'compose',
@@ -745,7 +745,6 @@ class Interface
     end
 
     message = Corpus.unread_topics.first
-    @reply_topic = message.hash
 
     Display.say message.to_topic_display
     Display.say
@@ -753,9 +752,9 @@ class Interface
     Corpus.mark_as_read([message.hash] + message.replies.map(&:hash))
   end
 
-  def reply(topic_id = @reply_topic)
+  def reply(topic_id)
     unless topic_id
-      Display.say "I can't reply to nothing! Include a topic ID or view a topic to reply to."
+      Display.say "I can't reply to nothing! Include a topic ID to reply to."
       return
     end
 
@@ -906,7 +905,6 @@ class Interface
     # TODO: Paginate here
     if index >= 0 && index < Corpus.topics.length
       msg = Corpus.topics[index]
-      @reply_topic = msg.hash
 
       Display.say msg.to_topic_display
       Display.say
