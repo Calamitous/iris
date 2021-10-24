@@ -32,10 +32,6 @@ class Config
     "#{messagefile_filename}.read"
   end
 
-  def self.historyfile_filename
-    "#{messagefile_filename}.history"
-  end
-
   def self.enable_debug_mode
     @@debug_mode = true
   end
@@ -331,8 +327,6 @@ class IrisFile
 end
 
 class Message
-  FILE_FORMAT = 'v2'
-
   attr_reader :timestamp, :edit_hash, :author, :parent, :message, :errors, :is_deleted
 
   def initialize(message, parent = nil, author = Config::AUTHOR, edit_hash = nil, timestamp = Time.now.utc.iso8601, is_deleted = nil)
@@ -397,10 +391,6 @@ class Message
 
   def valid?
     @errors.empty?
-  end
-
-  def topic?
-    parent.nil?
   end
 
   def replace!
@@ -497,6 +487,7 @@ class Message
     [to_display] + replies.map(&:to_display)
   end
 
+  # TODO: Is this only used for hashing?  Maybe rename.
   def to_json(*args)
     {
       hash: hash,
@@ -536,15 +527,15 @@ class Message
   end
 
   def leader_text
-    topic? ? "{g ***} [#{topic_id}] #{status_flag}" : ["{g ===}", "[#{id}]", status_flag].compact.join(' ')
+    is_topic? ? "{g ***} [#{topic_id}] #{status_flag}" : ["{g ===}", "[#{id}]", status_flag].compact.join(' ')
   end
 
   def verb_text
-    topic? ? 'posted' : 'replied'
+    is_topic? ? 'posted' : 'replied'
   end
 
   def indent_text
-    topic? ? '' : '    | '
+    is_topic? ? '' : '    | '
   end
 
   def unconfirmed_payload
@@ -564,8 +555,6 @@ class Display
   WIDTH = [ENV['COLUMNS'].to_i, `tput cols`.chomp.to_i, MIN_WIDTH].compact.max
   HEIGHT = [ENV['ROWS'].to_i, `tput lines`.chomp.to_i, MIN_HEIGHT].compact.max
 
-  # p Readline.get_screen_size
-  # WIDTH = Readline.get_screen_size[1]
   TITLE_WIDTH = WIDTH - 26
 
   def self.permissions_error(filename, file_description, permission_string, mode_string, consequence = nil)
@@ -856,9 +845,9 @@ class Interface
     return show_topic(cmd) if cmd =~ /^\d+$/
     # If we've gotten this far, we must have args. Let's handle 'em.
     arg = tokens.last
-    return reply(arg)  if cmd == 'reply'
-    return edit(arg)   if cmd == 'edit'
-    return delete(arg) if cmd == 'delete'
+    return reply(arg)     if cmd == 'reply'
+    return edit(arg)      if cmd == 'edit'
+    return delete(arg)    if cmd == 'delete'
     return mark_read(arg) if cmd == 'mark_read'
     Display.say 'Unrecognized command.  Type "help" for a list of available commands.'
   end
