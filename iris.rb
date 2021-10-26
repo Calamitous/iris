@@ -1037,7 +1037,7 @@ class Startupper
   NONFILE_OPTIONS        = %w[-h --help -v --version]
 
   def initialize(args)
-    perform_file_checks unless NONFILE_OPTIONS.include?(args)
+    Startupper.perform_file_checks unless NONFILE_OPTIONS.include?(args)
 
     load_corpus(args)
 
@@ -1052,8 +1052,7 @@ class Startupper
     end
   end
 
-  def perform_file_checks
-    raise 'Should not try to perform file checks in test mode!' if $test_corpus_file
+  def self.perform_file_checks
     unless File.exists?(Config::MESSAGE_FILE)
       Display.say "You don't have a message file at #{Config::MESSAGE_FILE}."
       response = Readline.readline 'Would you like me to create it for you? (y/n) ', true
@@ -1082,8 +1081,6 @@ class Startupper
   end
 
   def load_corpus(args)
-    $test_corpus_file = nil
-
     if (args & %w{-f --test-file}).any?
       filename_idx = (args.index('-f') || args.index('--test-file')) + 1
       filename = args[filename_idx]

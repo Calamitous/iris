@@ -19,7 +19,7 @@ Iris is strictly text-based, requiring no GUI or web servers.
 
 ## Installation
 
-At its core, Iris is simply a single, executable Ruby script.  It has been tested and is known to work with Ruby 2.3.5.  No extra gems or libraries are required.
+At its core, Iris is simply a single, executable Ruby script.  It has been tested and is known to work with Ruby 2.3.5 and above.  No extra gems or libraries are required.
 
 Copy or symlink `iris.rb` somewhere the whole server can use it; `/usr/local/bin` is a good candidate:
 
@@ -614,6 +614,12 @@ The one place we're breaking the rules on requiring gems is in the tests.  Mocha
 ```bash
 gem install --user-install minitest
 gem install --user-install mocha
+```
+
+To run the tests:
+
+```bash
+ruby tests/iris_test.rb
 ```
 
 ## Technical Bits
