@@ -681,7 +681,7 @@ class Interface
     message_text = external_editor()
 
     if message_text.length <= 1
-      Display.say 'Empty message, discarding...'
+      Display.say '{riv Empty message, discarding...}'
     else
       Message.new(message_text).save!
       Display.say 'Topic saved!'
@@ -724,7 +724,7 @@ class Interface
     message_text = external_editor()
 
     if message_text.length <= 1
-      Display.say 'Empty message, discarding...'
+      Display.say '{riv Empty message, discarding...}'
     else
       Message.new(message_text, reply_topic).save!
       Display.say 'Reply saved!'
