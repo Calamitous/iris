@@ -657,7 +657,7 @@ In order to operate correctly and safely, this file _must_ be:
 * World-readable
 * Owner-writable
 * Non-executable
-* Owned by the user account that will be storing messages for
+* Owned by the user account that it will be storing messages for
 
 ```bash
 %> ls -la ~/.iris.messages
@@ -665,7 +665,71 @@ In order to operate correctly and safely, this file _must_ be:
 ```
 
 ### Messages
+
+Messages fall into one of two categories: topics and replies.  Topics are top-level messages. Replies are messages that are attached to a topic.
+
+The message structure is as follows:
+
+```
+{
+  "hash": str,
+  "edit_hash": str,
+  "is_deleted": bool,
+  "data": {
+    "author": str,
+    "parent": str,
+    "timestamp": str,
+    "message": str
+  }
+}
+```
+
+Each field is as follows:
+
+* author: The username of the user who created the message, with the server hostname attached with an @ symbol (ie. `jerry_berry@ctrl-c.club`).
+* message: The text of the message.  The first line is the title of the message.
+* hash: Each message is SHA1 hashed for verification and uniqueness.  The author, parent hash, timestamp, and message values go into the hash. (see [Message Hash](#message-hash) for details)
+* parent: If the message is a reply, this holds the hash of the topic it's associated with.
+* timestamp: The GMT timestamp of when the message was created.
+* edit_hash: When a message is edited, a new message is created-- this field holds the hash of the modified message.  The client follows the chain of edit hashes to end up at the final, edited message to display.  This lets us keep an "undo" history (not yet implemented) and is a marker so the client can display a marker that the message has been edited.
+* is_deleted: This is a boolean field that marks whether a message has been deleted.  The message is retained so that the structure of topics and replies can be maintained.
+* errors (not saved to the file): This is where any issues are held for display.  Examples of errors are unparseable usernames or invalid hashes.
+
 #### Message Hash
+
+Each message is SHA1 hashed for verification and uniqueness.
+
+The hash is created by putting  `author`, `parent`, `timestamp`, and `message` go into a JSON-formatted string.  This string should include no extra whitespace.
+
+For example:
+
+The following message:
+
+author: `jerry_berry@ctrl-c.club`
+parent: null
+timestamp: `2021-11-25T06:35:34Z`
+message: `Howdy!`
+
+Would be turned into the following JSON string, in this order:
+
+```
+{"author":"jerry_berry@ctrl-c.club","parent":null,"timestamp":"2021-11-25T06:35:34Z","message":"Howdy!"}
+```
+
+This string would then be hashed using SHA1:
+
+```
+\xBD\xFD[D\xA0\xF0\xBFw`\x14\xF8)\xCA\xC9n\xFA-\x82\xB9\xBC
+```
+
+This hash is then base64 encoded:
+
+```
+vf1bRKDwv3dgFPgpyslu+i2Cubw=\n
+```
+
+This is the "key" that is used to uniquely identify this version of the message.
+
 ##### Bad Hashes
 #### Edit Chain
 #### Deleted Messages
