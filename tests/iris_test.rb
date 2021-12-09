@@ -4,6 +4,8 @@ require 'mocha/minitest'
 # This allows the test to pretend that user "jerryberry" is logged in.
 ENV['USER'] = 'jerryberry'
 
+ENV['EDITOR'] = 'foo/bar'
+
 # Set this before loading the code so that the Config constants load correctly.
 $test_corpus_file = "./tests/iris.messages.json"
 
@@ -32,6 +34,10 @@ describe Config do
 
   it 'has the author' do
     _(Config::AUTHOR).must_equal "#{Config::USER}@#{Config::HOSTNAME}"
+  end
+
+  it 'has the $EDITOR environment variable' do
+    _(Config::ENV_EDITOR).must_equal 'foo/bar'
   end
 
   describe '.find_files' do
@@ -97,10 +103,13 @@ describe Corpus do
     end
 
     it 'returns an empty array if the hash is not a parent of any other messages' do
+      _(Corpus.find_all_by_parent_hash(nil)).must_equal []
+    end
+
+    it 'returns an empty array if the hash is not found in the corpus' do
       _(Corpus.find_all_by_parent_hash('GoofMcDoof')).must_equal []
     end
 
-    it 'returns an empty array if the hash is not found in the corpus'
     it 'returns the messages associated with the parent hash'
   end
 
@@ -110,8 +119,13 @@ describe Corpus do
     end
 
     describe 'when an index string is passed in' do
-      it 'returns nil if the topic is not found'
-      it 'returns the associated topic'
+      it 'returns nil if the topic is not found' do
+        assert_nil Corpus.find_topic_by_id('InvalidTopicId')
+      end
+
+      it 'returns the associated topic' do
+        _(Corpus.find_topic_by_id(1).message).must_equal 'Test'
+      end
     end
   end
 
@@ -121,8 +135,13 @@ describe Corpus do
     end
 
     describe 'when a hash string is passed in' do
-      it 'returns nil if the topic is not found'
-      it 'returns the associated topic'
+      it 'returns nil if the topic is not found' do
+        assert_nil Corpus.find_topic_by_hash('BadHash')
+      end
+
+      it 'returns the associated topic' do
+        _(Corpus.find_topic_by_hash("gpY2WW/jGcH+BODgySCwDANJlIM=\n").message).must_equal 'Test'
+      end
     end
   end
 end
