@@ -36,7 +36,7 @@ Iris has a readline interface that can be used to navigate the message corpus.
 
 ```bash
 %> iris
-Welcome to Iris v. 1.1.0.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
+Welcome to Iris v. 1.1.1.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
@@ -368,7 +368,7 @@ This outputs the current version of Iris, along with messsage, topic, and author
 ```bash
 jennie_minnie@ctrl-c.club~> info
 
-Iris 1.1.0
+Iris 1.1.1
 22 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -402,7 +402,7 @@ iris --version
 ```
 
 ```bash
-Iris 1.1.0
+Iris 1.1.1
 ```
 
 ---
@@ -418,7 +418,7 @@ iris --stats
 ```
 
 ```bash
-Iris 1.1.0
+Iris 1.1.1
 22 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
