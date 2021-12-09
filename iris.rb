@@ -8,6 +8,19 @@ require 'tempfile'
 require 'time'
 # require 'pry' # Only needed for debugging
 
+class NilClass
+  def presence
+    self
+  end
+end
+
+class String
+  def presence
+    return nil if self.length == 0
+    self
+  end
+end
+
 class Config
   VERSION      = '1.1.0'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
@@ -17,6 +30,7 @@ class Config
   USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
   HOSTNAME     = `hostname -d`.chomp
   AUTHOR       = "#{USER}@#{HOSTNAME}"
+  ENV_EDITOR   = ENV['EDITOR'].presence || `which nano`.chomp.presence
 
   @@debug_mode = false
 
@@ -827,9 +841,9 @@ class Interface
       tf.flush
     end
 
-    raise "No `$EDITOR` environment variable set!" unless ENV['EDITOR'] && ENV['EDITOR'].length > 0
+    raise "No `$EDITOR` environment variable set!" unless Config::ENV_EDITOR
 
-    system("#{ENV['EDITOR']} #{tf.path}")
+    system("#{Config::ENV_EDITOR} #{tf.path}")
     tf.rewind
     message_text = tf.read
     tf.unlink
