@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1
+* Make discarded message response more prominent
+* Try nano if /usr/bin/vim is not set
+* Expand the technical documentation
+* Flesh out some tests
+* Clean up TODO file
+
 ## 1.1.0
 * Iris now composes messages with $EDITOR instead of using an internal editor
 * Remove (broken) feature that automatically selects a reply when not provided with a topic ID
