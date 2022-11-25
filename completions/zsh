@@ -1,0 +1,28 @@
+#compdef _iris iris
+
+# This is a zsh completion script for iris
+# It should be copied to /usr/share/zsh/functions/Completion/Unix/_iris
+
+function _iris {
+	local context state state_descr line
+	typeset -A opt_args
+
+	_arguments -C \
+		"-h[Show help information]" \
+		"--help[Show help information]" \
+		"-v[Display the current version of Iris]" \
+		"--version[Display the current version of Iris]" \
+		"-s[Display Iris version and message stats]" \
+		"--stats[Display Iris version and message stats]" \
+		"-i[Enter interactive mode (default)]" \
+		"--interactive[Enter interactive mode (default)]" \
+		"-d[Dump entire message corpus out]" \
+		"--dump[Dump entire message corpus out]" \
+		"-f[Use the specified test file for messages]:f:->f" \
+		"--test-file[Use the specified test file for messages]:f:->f" \
+		"--debug[Print warnings and debug informtation during use]"
+
+	if [ "$state" = "f" ]; then
+		_files
+	fi
+}

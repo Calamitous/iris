@@ -1,0 +1,41 @@
+#!/bin/bash -eu
+
+# This is a bash completion script for iris
+# It should be copied to /usr/share/bash-completion/completions/iris
+
+_iris_module() {
+	local cur prev OPTS
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	case $prev in
+		-f | --test-file)
+			return 0 # File
+		;;
+	esac
+
+	case $cur in
+		--*)
+			OPTS="--help
+			      --version
+			      --stats
+			      --interactive
+			      --dump
+			      --test-file
+			      --debug"
+		;;
+		*)
+			OPTS="-h
+			      -v
+			      -s
+			      -i
+			      -d
+			      -f"
+		;;
+	esac
+
+	COMPREPLY=( $(compgen -W "${OPTS[*]}" -- $cur) )
+}
+
+complete -F _iris_module -o bashdefault -o default iris
