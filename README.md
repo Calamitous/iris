@@ -104,7 +104,7 @@ The format of the unread topics list is identical to the format of the [topics](
 ---
 
 ### Display topic
-`# (topic id) - Read specified topic`
+`(topic id #) - Read specified topic`
 
 Type in the index of the topic you wish to read.  This will display the topic and all its replies.
 ```
