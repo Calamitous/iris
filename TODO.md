@@ -10,6 +10,8 @@
 * Flesh out technical sections
 
 ### Bugs
+* Terrible slowdown when refreshing topics
+  * Performance is fine when no new topics show up
 * Is `Time.now.utc.iso8601` working as expected?
   * Fix bug when people are posting from different time zones
   * Fix message ordering when editing/deleting multiple messages

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.2
+* Fix bug where "hostname" portion of author is missing or garbled
+
 ## 1.1.1
 * Make discarded message response more prominent
 * Try nano if /usr/bin/vim is not set

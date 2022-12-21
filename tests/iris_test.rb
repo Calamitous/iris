@@ -24,16 +24,48 @@ describe Config do
     _(Config::HISTORY_FILE).must_match /\/\.iris\.history$/
   end
 
-  it 'has the username' do
-    _(Config::USER).must_equal 'jerryberry'
-  end
+  describe '.hostname' do
+    before do
+      Config.instance_variable_set(:@hostname, nil)
+    end
 
-  it 'has a hostname' do
-    _(Config::HOSTNAME).wont_be_nil
+    it 'has a hostname' do
+      _(Config.hostname).wont_be_nil
+    end
+
+    it 'correctly interprets an empty string' do
+      Config.expects(:`).with('hostname').returns('')
+      _(Config.hostname).must_equal 'localhost'
+    end
+
+    it 'correctly interprets localhost' do
+      Config.instance_variable_set(:@hostname, nil)
+      Config.expects(:`).with('hostname').returns('localhost')
+      _(Config.hostname).must_equal 'localhost'
+    end
+
+    it 'correctly interprets a subdomain' do
+      Config.instance_variable_set(:@hostname, nil)
+      Config.expects(:`).with('hostname').returns('example.com')
+      _(Config.hostname).must_equal 'example.com'
+    end
+
+    it 'correctly interprets a subsubdomain' do
+      Config.instance_variable_set(:@hostname, nil)
+      Config.expects(:`).with('hostname').returns('foo.example.com')
+      _(Config.hostname).must_equal 'example.com'
+    end
+
+    it 'correctly interprets an arbitrary number of subdomains' do
+      Config.instance_variable_set(:@hostname, nil)
+      Config.expects(:`).with('hostname').returns('foo.bar.baz.quux.example.com')
+      _(Config.hostname).must_equal 'example.com'
+    end
   end
 
   it 'has the author' do
-    _(Config::AUTHOR).must_equal "#{Config::USER}@#{Config::HOSTNAME}"
+    user = 'jerryberry'
+    _(Config.author).must_equal "#{user}@#{Config.hostname}"
   end
 
   it 'has the $EDITOR environment variable' do
