@@ -385,25 +385,50 @@ This displays helpful reminders of the commands that Iris supports.
 
 There are a few options you can pass in from the command-line:
 
- * [--version, -v](#--version-v)
- * [--stats, -s](#--stats-s)
- * [--interactive, -i](#--interactive-i)
- * [--mark-all-read](#--mark-all-read)
+ * [--debug](#--debug)
  * [--dump, -d](#--dump-d)
  * [--help, -h](#--help-h)
- * [--debug](#--debug)
+ * [--interactive, -i](#--interactive-i)
+ * [--mark-all-read](#--mark-all-read)
+ * [--stats, -s](#--stats-s)
+ * [--test-file, -s](#--test-file)
+ * [--version, -v](#--version-v)
 
-### --version/-v
+### --debug
 
-This displays the current version of Iris and exits.
+This option turns on debug mode.  Warnings and errors will be output as the program is used.
 
-```bash
-iris --version
-```
+Having these messages constantly appear can be distracting or annoying during regular Iris usage, but are useful when tracking down issues.
 
-```bash
-Iris 1.1.1
-```
+This option works in both interactive and non-interactive mode.
+
+---
+
+### --dump/-d
+
+This reads the entire message corpus and outputs it as a stream of JSON data, suitable for piping into a backup file, `jq` parser, or similar.
+
+This command does not enter Iris' interactive mode.
+
+---
+
+### --help/-h
+
+This command displays a complete list of options that Iris recognizes.
+
+---
+
+### --interactive/-i
+
+This command enters Iris' interactive mode, the default mode with which users can compose and read topics and replies.
+
+This is the mode that Iris enters if no options are passed on the command-line.
+
+---
+
+### --mark-all-read
+
+This command simply marks every message as read in Iris.  It's a quick way to get to "Irisbox Zero".
 
 ---
 
@@ -426,39 +451,6 @@ Iris 1.1.1
 
 ---
 
-### --interactive/-i
-
-This command enters Iris' interactive mode, the default mode with which users can compose and read topics and replies.
-
-This is the mode that Iris enters if no options are passed on the command-line.
-
----
-
-
-### --mark-all-read
-
-This command simply marks every message as read in Iris.  It's a quick way to get to "Irisbox Zero".
-
----
-
-### --dump/-d
-
-This reads the entire message corpus and outputs it as a stream of JSON data, suitable for piping into a backup file, `jq` parser, or similar.
-
-This command does not enter Iris' interactive mode.
-
----
-
-### --debug
-
-This option turns on debug mode.  Warnings and errors will be output as the program is used.
-
-Having these messages constantly appear can be distracting or annoying during regular Iris usage, but are useful when tracking down issues.
-
-This option works in both interactive and non-interactive mode.
-
----
-
 ### --test-file/-f
 
 ```bash
@@ -471,9 +463,17 @@ This option works in both interactive and non-interactive mode.
 
 ---
 
-### --help/-h
+### --version/-v
 
-This command displays a complete list of options that Iris recognizes.
+This displays the current version of Iris and exits.
+
+```bash
+iris --version
+```
+
+```bash
+Iris 1.1.1
+```
 
 ## Text Features/Markup
 

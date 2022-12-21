@@ -17,21 +17,21 @@ _iris_module() {
 
 	case $cur in
 		--*)
-			OPTS="--help
-			      --version
-			      --stats
-			      --interactive
+			OPTS="--debug
 			      --dump
+			      --help
+			      --interactive
+			      --stats
 			      --test-file
-			      --debug"
+			      --version"
 		;;
 		*)
-			OPTS="-h
-			      -v
-			      -s
+			OPTS="-d
+			      -f
+			      -h
 			      -i
-			      -d
-			      -f"
+			      -s
+			      -v"
 		;;
 	esac
 

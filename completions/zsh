@@ -8,19 +8,20 @@ function _iris {
 	typeset -A opt_args
 
 	_arguments -C \
-		"-h[Show help information]" \
-		"--help[Show help information]" \
-		"-v[Display the current version of Iris]" \
-		"--version[Display the current version of Iris]" \
-		"-s[Display Iris version and message stats]" \
-		"--stats[Display Iris version and message stats]" \
-		"-i[Enter interactive mode (default)]" \
-		"--interactive[Enter interactive mode (default)]" \
+		"--debug[Print warnings and debug informtation during use]" \
 		"-d[Dump entire message corpus out]" \
 		"--dump[Dump entire message corpus out]" \
+		"-h[Show help information]" \
+		"--help[Show help information]" \
+		"-i[Enter interactive mode (default)]" \
+		"--interactive[Enter interactive mode (default)]" \
+		"--mark-all-read[Mark every message in Iris as \"read\".]"
+		"-s[Display Iris version and message stats]" \
+		"--stats[Display Iris version and message stats]" \
 		"-f[Use the specified test file for messages]:f:->f" \
 		"--test-file[Use the specified test file for messages]:f:->f" \
-		"--debug[Print warnings and debug informtation during use]"
+		"-v[Display the current version of Iris]" \
+		"--version[Display the current version of Iris]" \
 
 	if [ "$state" = "f" ]; then
 		_files
