@@ -27,12 +27,25 @@ class Config
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   IRIS_SCRIPT  = __FILE__
 
-  USER         = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
-  HOSTNAME     = `hostname -d`.chomp
-  AUTHOR       = "#{USER}@#{HOSTNAME}"
   ENV_EDITOR   = ENV['EDITOR'].presence || `which nano`.chomp.presence
 
   @@debug_mode = false
+
+  def self.hostname
+    return @hostname if @hostname
+
+    hostname = `hostname`.chomp
+    hostname = 'localhost' if hostname.empty?
+
+    return @hostname = hostname if hostname == 'localhost'
+
+    @hostname = hostname.split('.')[-2..-1].compact.join('.')
+  end
+
+  def self.author
+    user = ENV['USER'] || ENV['LOGNAME'] || ENV['USERNAME']
+    @author ||= "#{user}@#{self.hostname}"
+  end
 
   def self.find_files
     (`ls /home/**/.iris.messages`).split("\n")
@@ -343,7 +356,7 @@ end
 class Message
   attr_reader :timestamp, :edit_hash, :author, :parent, :message, :errors, :is_deleted
 
-  def initialize(message, parent = nil, author = Config::AUTHOR, edit_hash = nil, timestamp = Time.now.utc.iso8601, is_deleted = nil)
+  def initialize(message, parent = nil, author = Config.author, edit_hash = nil, timestamp = Time.now.utc.iso8601, is_deleted = nil)
     @message    = message
     @parent     = parent
     @author     = author
@@ -890,7 +903,7 @@ class Interface
   end
 
   def prompt
-    "#{Config::AUTHOR}~> "
+    "#{Config.author}~> "
   end
 
   def initialize(args)

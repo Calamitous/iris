@@ -596,7 +596,7 @@ Iris must:
     * Deleted or edited messages should leave flags or placeholders for other users to know that other content was there before.
     * The Iris client should expect that any message file could be missing, altered, or corrupted, and should handle those cases gracefully.
   * Be portable
-    * All Iris files should be human-readable (and -editable, in a pinch)
+    * All Iris data files should be human-readable (and -editable, in a pinch)
     * The use of the official Iris client should be optional for a user to manage his or her messages.  A text editor should suffice.
     * Other clients which follow the Iris file format should work seamlessly with the official Iris client.
   * Be secure
@@ -605,7 +605,7 @@ Iris must:
   * Be a teacher
     * Code should be clean, well-organized, and readable.
   * Be limited in scope
-    * The source code should not exceed 1,000 LOC
+    * The source code should not exceed 1,000 SLOC
 
 ## Tests
 
@@ -620,6 +620,20 @@ To run the tests:
 
 ```bash
 ruby tests/iris_test.rb
+```
+
+```bash
+Run options: --seed 11507
+
+# Running:
+
+.........................SSS.......SS.......S.....SSSSSSS....SSSSS
+
+Finished in 0.107785s, 612.3294 runs/s, 677.2734 assertions/s.
+
+66 runs, 73 assertions, 0 failures, 0 errors, 18 skips
+
+You have skipped tests. Run with --verbose for details.
 ```
 
 ## Technical Bits
