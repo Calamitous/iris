@@ -14,6 +14,7 @@ Iris is strictly text-based, requiring no GUI or web servers.
  * [Text Features/Markup](#text-featuresmarkup)
  * [Philosophy](#philosophy)
  * [Tests](#tests)
+ * [Cutting A Release](#cutting-a-release)
  * [Technical Bits](#technical-bits)
  * [License](#license)
 
@@ -635,6 +636,28 @@ Finished in 0.107785s, 612.3294 runs/s, 677.2734 assertions/s.
 
 You have skipped tests. Run with --verbose for details.
 ```
+
+## Cutting A Release
+
+### Prep
+* Make all updates in an appropriately named branch. (ie. `1.1.2`)
+* Make sure all commits are clean.
+* Make sure tests pass.
+
+### Updates
+* Change version number in `iris.rb`
+* Change version numbers in documentation `README.md`
+* Add new version and details to `CHANGELOG`
+* Create new commit for release (Named "Bump Iris version to 1.1.2" or similar)
+
+### Make the Sausage
+* Push the branch
+  * `git push origin`
+* Merge the branch (Fast-forward only, for a linear commit history)
+* Tag the release
+  * `git tag 1.1.2`
+* Push the tags
+  * `git push origin --tags`
 
 ## Technical Bits
 
