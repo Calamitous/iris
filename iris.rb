@@ -22,7 +22,7 @@ class String
 end
 
 class Config
-  VERSION      = '1.1.1'
+  VERSION      = '1.1.2'
   MESSAGE_FILE = "#{ENV['HOME']}/.iris.messages"
   HISTORY_FILE = "#{ENV['HOME']}/.iris.history"
   IRIS_SCRIPT  = __FILE__
