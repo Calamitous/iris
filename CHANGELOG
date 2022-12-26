@@ -1,7 +1,9 @@
 # Changelog
 
 ## 1.1.2
-* Fix bug where "hostname" portion of author is missing or garbled
+* Fixed bug where "hostname" portion of author is missing or garbled.
+* Added CLI completion scripts for bash and zsh. [Thanks, jlxip!](https://github.com/jlxip)
+* Minor tweaks and additions to the documentation.
 
 ## 1.1.1
 * Make discarded message response more prominent
