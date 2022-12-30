@@ -789,6 +789,8 @@ class Interface
 
     if message_text.length <= 1
       Display.say 'Empty message, not updating...'
+    elsif message_text == message.message
+      Display.say 'No change made, not updating...'
     else
       Message.edit(message_text, message)
       Display.say 'Message edited!'
