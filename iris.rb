@@ -4,6 +4,7 @@ require 'digest'
 require 'etc'
 require 'json'
 require 'readline'
+require 'set'
 require 'tempfile'
 require 'time'
 # require 'pry' # Only needed for debugging
@@ -232,6 +233,10 @@ class Corpus
       m.unread? ||
         find_all_by_parent_hash(m.hash).reduce(false) { |agg, r| agg || r.unread? }
     end
+  end
+
+  def self.unread_topics_set
+    unread_topics.map(&:hash).to_set
   end
 
   def self.size
@@ -927,8 +932,9 @@ class Interface
 
     Display.say Display.topic_header
     # TODO: Paginate here
+    unread_hashes = Corpus.unread_topics_set
     Corpus.topics.each_with_index do |topic, index|
-      if Corpus.unread_topics.include?(topic)
+      if unread_hashes.include?(topic.hash)
         Display.say topic.to_topic_line(index + 1)
       end
     end
