@@ -37,9 +37,10 @@ class Config
     hostname = `hostname`.chomp
     hostname = 'localhost' if hostname.empty?
 
-    return @hostname = hostname if hostname == 'localhost'
+    components = hostname.split('.')
+    return @hostname = hostname if components.length == 1
 
-    @hostname = hostname.split('.')[-2..-1].compact.join('.')
+    @hostname = components[-2..-1].compact.join('.')
   end
 
   def self.author

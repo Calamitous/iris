@@ -44,6 +44,12 @@ describe Config do
       _(Config.hostname).must_equal 'localhost'
     end
 
+    it 'correctly interprets a single word' do
+      Config.instance_variable_set(:@hostname, nil)
+      Config.expects(:`).with('hostname').returns('example')
+      _(Config.hostname).must_equal 'example'
+    end
+
     it 'correctly interprets a subdomain' do
       Config.instance_variable_set(:@hostname, nil)
       Config.expects(:`).with('hostname').returns('example.com')
