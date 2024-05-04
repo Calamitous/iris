@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3
+* Fixed bug (https://github.com/Calamitous/iris/issues/62) causing errors when running Iris for the first time.  [Thank you, lee2sman!](https://github.com/lee2sman)
+* Fixed bug causing message to be deleted when exiting a message edit without making changes. [Thank you, zack466!](https://github.com/zack466)
+* Greatly improved the speed of reloading unread messages.  [Thank you, teepark!](https://github.com/teepark)
+
 ## 1.1.2
 * Fixed bug where "hostname" portion of author is missing or garbled.
 * Added CLI completion scripts for bash and zsh. [Thanks, jlxip!](https://github.com/jlxip)
