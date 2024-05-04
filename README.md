@@ -37,7 +37,7 @@ Iris has a readline interface that can be used to navigate the message corpus.
 
 ```bash
 %> iris
-Welcome to Iris v. 1.1.2.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
+Welcome to Iris v. 1.1.3.  Type "help" for a list of commands.; Ctrl-D or 'quit' to leave.
 
  | ID | U | TIMESTAMP            | AUTHOR                  | TITLE
  |  1 |   | 2018-01-24T05:49:53Z | jimmy_foo@ctrl-c.club   | Welcome!
@@ -369,7 +369,7 @@ This outputs the current version of Iris, along with messsage, topic, and author
 ```bash
 jennie_minnie@ctrl-c.club~> info
 
-Iris 1.1.2
+Iris 1.1.3
 22 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -444,7 +444,7 @@ iris --stats
 ```
 
 ```bash
-Iris 1.1.2
+Iris 1.1.3
 22 topics, 0 unread.
 50 messages, 0 unread.
 10 authors.
@@ -473,7 +473,7 @@ iris --version
 ```
 
 ```bash
-Iris 1.1.2
+Iris 1.1.3
 ```
 
 ## Text Features/Markup
@@ -640,7 +640,7 @@ You have skipped tests. Run with --verbose for details.
 ## Cutting A Release
 
 ### Prep
-* Make all updates in an appropriately named branch. (ie. `1.1.2`)
+* Make all updates in an appropriately named branch. (ie. `1.1.3`)
 * Make sure all commits are clean.
 * Make sure tests pass.
 
@@ -648,14 +648,14 @@ You have skipped tests. Run with --verbose for details.
 * Change version number in `iris.rb`
 * Change version numbers in documentation `README.md`
 * Add new version and details to `CHANGELOG`
-* Create new commit for release (Named "Bump Iris version to 1.1.2" or similar)
+* Create new commit for release (Named "Bump Iris version to 1.1.3" or similar)
 
 ### Make the Sausage
 * Push the branch
   * `git push origin`
 * Merge the branch (Fast-forward only, for a linear commit history)
 * Tag the release
-  * `git tag 1.1.2`
+  * `git tag 1.1.3`
 * Push the tags
   * `git push origin --tags`
 
