@@ -5,7 +5,7 @@ Iris is a tiny bit of shared message and file convention that pretends to be for
 
 It is a fully usable message system, designed for use between different users on a single server.
 
-Iris is strictly text-based, requiring no GUI or web servers.
+Iris is strictly text-based, requiring no GUI, database, or web servers.
 
  * [Installation](#installation)
  * [Usage](#usage)

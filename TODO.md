@@ -18,6 +18,7 @@
 * Gracefully handle attempt to "r 1 message"
 
 ### Features
+* Add permalinks/indexes
 * Add pagination/less for long message lists
   * https://github.com/Calamitous/iris/issues/1
 * Add local timezone rendering
